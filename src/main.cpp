@@ -1,6 +1,7 @@
 #define SDL_MAIN_HANDLED
 
 #include <algorithm>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
@@ -23,8 +24,30 @@ int clamp(int minimum, int value, int maximum) {
     return value;
 }
 
+double clampd(double minimum, double value, double maximum) {
+    if (value < minimum) return minimum;
+    if (value > maximum) return maximum;
+    return value;
+}
+
 PixelArgb packColorRgb(uint32_t r, uint32_t g, uint32_t b) {
     return (255 << 24) | (r << 16) | (g << 8) | (b << 0);
+}
+
+void unpackColorRgb(PixelArgb color, uint32_t* r, uint32_t* g, uint32_t* b) {
+    *r = (color >> 16) & 0xFF;
+    *g = (color >> 8) & 0xFF;
+    *b = (color >> 0) & 0xFF;
+}
+
+PixelArgb interpolateColors(PixelArgb color0, PixelArgb color1, double t) {
+    uint32_t r0, g0, b0, r1, g1, b1, r, g, b;
+    unpackColorRgb(color0, &r0, &g0, &b0);
+    unpackColorRgb(color1, &r1, &g1, &b1);
+    r = clamp(0, r0 * (1 - t) + r1 * t, 255);
+    g = clamp(0, g0 * (1 - t) + g1 * t, 255);
+    b = clamp(0, b0 * (1 - t) + b1 * t, 255);
+    return packColorRgb(r, g, b);
 }
 
 const auto SKY_COLOR = packColorRgb(154, 223, 255);
@@ -101,7 +124,7 @@ void drawTexturedGround(
 
         auto dx = point_in_world.x() / point_in_world.w() - extrinsics.x;
         auto dz = point_in_world.z() / point_in_world.w() - extrinsics.z;
-        auto d = sqrt(dx * dx + dz * dz);
+        auto d = hypot(dx, dz);
         dx *= step_length / d;
         dz *= step_length / d;
         auto offset_x = 0.0;
@@ -115,13 +138,21 @@ void drawTexturedGround(
         for (auto step = 0; step < step_count; ++step) {
             offset_x += dx;
             offset_z += dz;
+            auto offset = hypot(offset_x, offset_z);
+            auto shading = clampd(0, 200.0 / offset, 1);
+            shading *= shading * shading * shading;
+            if (step == 0) {
+                printf("offset=%.f shading=%.f\n", offset, shading);
+            }
+            //shading = 1.0;
 
             auto x = extrinsics.x + offset_x;
             auto z = extrinsics.z + offset_z;
 
             auto texture_u = clamp(0, x, texture.width() - 1);
             auto texture_v = clamp(0, z, texture.height() - 1);
-            auto color = texture(texture_u, texture_v);
+            auto texture_color = texture(texture_u, texture_v);
+            auto color = interpolateColors(SKY_COLOR, texture_color, shading);
 
             auto ground_height = -20.0;
             auto texture_point_in_world = Vector4d{x, ground_height, z, 1};
