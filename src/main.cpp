@@ -17,6 +17,12 @@
 
 using PixelArgb = uint32_t;
 
+int clamp(int minimum, int value, int maximum) {
+    if (value < minimum) return minimum;
+    if (value > maximum) return maximum;
+    return value;
+}
+
 PixelArgb packColorRgb(uint32_t r, uint32_t g, uint32_t b) {
     return (255 << 24) | (r << 16) | (g << 8) | (b << 0);
 }
@@ -56,7 +62,7 @@ Array2<PixelArgb> readPpm(const char* file_path) {
 }
 
 CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
-    auto speed = 0.1;
+    auto speed = 0.5;
     if (isKeyDown(SDL_SCANCODE_LEFT)) {
         extrinsics.x += speed;
     }
@@ -82,6 +88,52 @@ void drawTexture(Array2<PixelArgb>& screen, const Array2<PixelArgb>& texture) {
     }
 }
 
+void drawTexturedGround(
+    Array2<PixelArgb>& screen,
+    const Array2<PixelArgb>& texture,
+    CameraIntrinsics intrinsics,
+    CameraExtrinsics extrinsics
+) {
+    auto image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
+    auto world_from_image = image_from_world.inverse().eval();
+
+    for (auto screen_x = 0; screen_x < screen.width(); ++screen_x) {
+        auto step_count = 200;
+        auto step_length = 2.0;
+        auto point_in_image = Vector4d{double(screen_x), 0, 1, 1};
+        auto point_in_world = world_from_image * point_in_image;
+        auto x = extrinsics.x;
+        auto z = extrinsics.z;
+        auto dx = step_length * (point_in_world.x() / point_in_world.w() - x);
+        auto dz = step_length * (point_in_world.z() / point_in_world.w() - z);
+        printf("dx=%.2f dz=%.2f\n", dx, dz);
+
+        for (auto step = 0; step < step_count; ++step) {
+            x += dx;
+            z += dz;
+
+            if (0 <= x && x < texture.width() - 1 && 0 <= z && z < texture.height() - 1) {
+                auto texture_u = clamp(0, x, texture.width() - 1);
+                auto texture_v = clamp(0, z, texture.height() - 1);
+                auto ground_height = -20.0;
+                auto texture_point_in_world = Vector4d{x, ground_height, z, 1};
+                auto texture_point_in_image = (image_from_world * texture_point_in_world).eval();
+                auto screen_y = texture_point_in_image.y() / texture_point_in_image.w();
+                screen_y = clamp(0, screen_y, screen.height() - 1);
+                screen(screen_x, screen_y) = texture(texture_u, texture_v);
+            }
+        }
+    }
+}
+
+void printCameraCoordinates(CameraExtrinsics extrinsics) {
+    auto forward_in_camera = Vector4d{0, 0, 1, 0};
+    auto forward_in_world = (worldFromCamera(extrinsics) * forward_in_camera).eval();
+
+    printf("Camera position %.0f %.0f %.0f\n", extrinsics.x, extrinsics.y, extrinsics.z);
+    printf("Forward direction %.0f %.0f %.0f\n", forward_in_world.x(), forward_in_world.y(), forward_in_world.z());
+}
+
 int main(int, char**) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         handleSdlError("SDL_Init");
@@ -91,11 +143,16 @@ int main(int, char**) {
     auto window = makeFullScreenWindow(WIDTH, HEIGHT, "Voxel Landscape");
     auto pixels = Array2<PixelArgb>(WIDTH, HEIGHT, 0);
     SDL_ShowCursor(SDL_DISABLE);
+    auto texture = readPpm("images/texture.ppm");
     auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
     auto extrinsics = CameraExtrinsics{};
+    extrinsics.x = texture.width() / 2;
     extrinsics.z = -10;
+    extrinsics.yaw = 3.14;
 
-    auto texture = readPpm("images/texture.ppm");
+    printCameraCoordinates(extrinsics);
+
+
 
     auto points = Vectors4d{
         {1,1,1,1},{1,-1,1,1},{-1,-1,1,1},{-1,1,1,1},
@@ -110,7 +167,13 @@ int main(int, char**) {
         extrinsics = moveCamera(extrinsics);
 
         fill(pixels, packColorRgb(0, 0, 0));
-        drawTexture(pixels, texture);
+        //drawTexture(pixels, texture);
+        drawTexturedGround(
+            pixels,
+            texture,
+            intrinsics,
+            extrinsics
+        );
 
         auto image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
         for (auto point_in_world : points) {
