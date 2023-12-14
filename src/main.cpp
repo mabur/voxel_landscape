@@ -78,6 +78,11 @@ CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     return extrinsics;
 }
 
+void drawSky(Array2<PixelArgb>& screen) {
+    auto sky = packColorRgb(154, 223, 255);
+    fill(screen, sky);
+}
+
 void drawTexturedGround(
     Array2<PixelArgb>& screen,
     const Array2<PixelArgb>& texture,
@@ -158,7 +163,7 @@ int main(int, char**) {
             break;
         }
         extrinsics = moveCamera(extrinsics);
-        fill(pixels, packColorRgb(0, 0, 0));
+        drawSky(pixels);
         drawTexturedGround(
             pixels,
             texture,
