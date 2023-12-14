@@ -137,10 +137,6 @@ void drawTexturedGround(
         auto offset_x = 0.0;
         auto offset_z = 0.0;
 
-        if (screen_x == 0) {
-            printf("dx=%.2f dz=%.2f\n", dx, dz);
-        }
-
         auto latest_y = screen.height();
         for (auto step = 0; step < step_count; ++step) {
             offset_x += dx;
@@ -148,9 +144,6 @@ void drawTexturedGround(
             auto offset = hypot(offset_x, offset_z);
             auto shading = clampd(0, 200.0 / offset, 1);
             shading *= shading * shading * shading;
-            if (step == 0) {
-                printf("offset=%.f shading=%.f\n", offset, shading);
-            }
             //shading = 1.0;
 
             auto x = extrinsics.x + offset_x;
@@ -196,12 +189,14 @@ int main(int, char**) {
     auto texture = readPpm("images/texture.ppm");
     auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
     auto extrinsics = CameraExtrinsics{};
-    extrinsics.x = texture.width() / 2;
-    extrinsics.z = -10;
+    // extrinsics.x = texture.width() / 2;
+    // extrinsics.z = -10;
+    extrinsics.x = 110;
+    extrinsics.z = -1;
     extrinsics.yaw = 3.14;
-    printCameraCoordinates(extrinsics);
 
     for (;;) {
+        printCameraCoordinates(extrinsics);
         registerFrameInput(window.renderer);
         if (hasReceivedQuitEvent() || isKeyDown(SDL_SCANCODE_ESCAPE)) {
             break;
