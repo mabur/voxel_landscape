@@ -14,6 +14,23 @@ uint32_t packColorRgb(uint32_t r, uint32_t g, uint32_t b) {
     return (255 << 24) | (r << 16) | (g << 8) | (b << 0);
 }
 
+CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
+    auto speed = 0.1;
+    if (isKeyDown(SDL_SCANCODE_LEFT)) {
+        extrinsics.x += speed;
+    }
+    if (isKeyDown(SDL_SCANCODE_RIGHT)) {
+        extrinsics.x -= speed;
+    }
+    if (isKeyDown(SDL_SCANCODE_UP)) {
+        extrinsics.z += speed;
+    }
+    if (isKeyDown(SDL_SCANCODE_DOWN)) {
+        extrinsics.z -= speed;
+    }
+    return extrinsics;
+}
+
 int main(int, char**) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         handleSdlError("SDL_Init");
@@ -38,6 +55,7 @@ int main(int, char**) {
         if (hasReceivedQuitEvent() || isKeyDown(SDL_SCANCODE_ESCAPE)) {
             break;
         }
+        extrinsics = moveCamera(extrinsics);
 
         fill(pixels, packColorRgb(0, 0, 0));
         auto image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
