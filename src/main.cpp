@@ -121,13 +121,13 @@ void drawTexturedGround(
             auto ground_height = -20.0;
             auto texture_point_in_world = Vector4d{x, ground_height, z, 1};
             auto texture_point_in_image = (image_from_world * texture_point_in_world).eval();
-            auto screen_y = texture_point_in_image.y() / texture_point_in_image.w();
+            auto next_screen_y = texture_point_in_image.y() / texture_point_in_image.w();
 
-            if (0 <= screen_y && screen_y <= screen.height() - 1) {
-                for (auto y = screen_y; y < latest_y; ++y) {
-                    screen(screen_x, y) = color;
+            if (0 <= next_screen_y && next_screen_y <= screen.height() - 1) {
+                for (auto screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
+                    screen(screen_x, screen_y) = color;
                 }
-                latest_y = screen_y;
+                latest_y = next_screen_y;
             }
         }
     }
