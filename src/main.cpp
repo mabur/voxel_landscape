@@ -72,6 +72,16 @@ CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     return extrinsics;
 }
 
+void drawTexture(Array2<PixelArgb>& screen, const Array2<PixelArgb>& texture) {
+    const auto width = std::min<int>(texture.width(), screen.width());
+    const auto height = std::min<int>(texture.height(), screen.height());
+    for (auto y = 0; y < height; ++y) {
+        for (auto x = 0; x < width; ++x) {
+            screen(x, y) = texture(x, y);
+        }
+    }
+}
+
 int main(int, char**) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         handleSdlError("SDL_Init");
@@ -100,12 +110,7 @@ int main(int, char**) {
         extrinsics = moveCamera(extrinsics);
 
         fill(pixels, packColorRgb(0, 0, 0));
-
-        for (auto y = 0; y < std::min<int>(texture.height(), HEIGHT); ++y) {
-            for (auto x = 0; x < texture.width(); ++x) {
-                pixels(x, y) = texture(x, y);
-            }
-        }
+        drawTexture(pixels, texture);
 
         auto image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
         for (auto point_in_world : points) {
