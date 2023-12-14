@@ -50,7 +50,8 @@ PixelArgb interpolateColors(PixelArgb color0, PixelArgb color1, double t) {
     return packColorRgb(r, g, b);
 }
 
-const auto SKY_COLOR = packColorRgb(154, 223, 255);
+const auto DARK_SKY_COLOR = packColorRgb(0, 145, 212);
+const auto LIGHT_SKY_COLOR = packColorRgb(154, 223, 255);
 
 PixelArgb* readPpm(const char* file_path, int* width, int* height) {
     using namespace std;
@@ -104,7 +105,13 @@ CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
 }
 
 void drawSky(Array2<PixelArgb>& screen) {
-    fill(screen, SKY_COLOR);
+    for (auto y = 0; y < screen.height(); ++y) {
+        auto t = 2.0 * y / screen.height();
+        auto color = interpolateColors(DARK_SKY_COLOR, LIGHT_SKY_COLOR, t);
+        for (auto x = 0; x < screen.width(); ++x) {
+            screen(x, y) = color;
+        }
+    }
 }
 
 void drawTexturedGround(
@@ -152,7 +159,7 @@ void drawTexturedGround(
             auto texture_u = clamp(0, x, texture.width() - 1);
             auto texture_v = clamp(0, z, texture.height() - 1);
             auto texture_color = texture(texture_u, texture_v);
-            auto color = interpolateColors(SKY_COLOR, texture_color, shading);
+            auto color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
 
             auto ground_height = -20.0;
             auto texture_point_in_world = Vector4d{x, ground_height, z, 1};
