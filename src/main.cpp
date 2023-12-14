@@ -10,6 +10,7 @@
 #include <SDL2/SDL.h>
 
 #include "algorithm.hpp"
+#include "array2.hpp"
 #include "camera.hpp"
 #include "input.hpp"
 #include "window.hpp"
@@ -45,6 +46,15 @@ PixelArgb* readPpm(const char* file_path, int* width, int* height) {
     return pixels;
 }
 
+Array2<PixelArgb> readPpm(const char* file_path) {
+    auto width = 0;
+    auto height = 0;
+    auto data = readPpm(file_path, &width, &height);
+    auto image = Array2<PixelArgb>(width, height, 0);
+    std::copy(data, data + image.size(), image.data());
+    return image;
+}
+
 CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     auto speed = 0.1;
     if (isKeyDown(SDL_SCANCODE_LEFT)) {
@@ -68,23 +78,14 @@ int main(int, char**) {
     }
     auto WIDTH = 320;
     auto HEIGHT = 200;
-    auto NUM_PIXELS = WIDTH * HEIGHT;
     auto window = makeFullScreenWindow(WIDTH, HEIGHT, "Voxel Landscape");
-    auto pixels = std::vector<PixelArgb>(NUM_PIXELS);
+    auto pixels = Array2<PixelArgb>(WIDTH, HEIGHT, 0);
     SDL_ShowCursor(SDL_DISABLE);
     auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
     auto extrinsics = CameraExtrinsics{};
     extrinsics.z = -10;
 
-    auto texture_width = 0;
-    auto texture_height = 0;
-    auto texture_data = readPpm("images/texture.ppm", &texture_width, &texture_height);
-    if (texture_data == nullptr) {
-        printf("could not read texture\n");
-        exit(1);
-    } else {
-        printf("Read texture width=%i height=%i\n", texture_width, texture_height);
-    }
+    auto texture = readPpm("images/texture.ppm");
 
     auto points = Vectors4d{
         {1,1,1,1},{1,-1,1,1},{-1,-1,1,1},{-1,1,1,1},
@@ -100,9 +101,9 @@ int main(int, char**) {
 
         fill(pixels, packColorRgb(0, 0, 0));
 
-        for (auto y = 0; y < std::min(texture_height, HEIGHT); ++y) {
-            for (auto x = 0; x < texture_width; ++x) {
-                pixels[y * WIDTH + x] = texture_data[y * texture_width + x];
+        for (auto y = 0; y < std::min<int>(texture.height(), HEIGHT); ++y) {
+            for (auto x = 0; x < texture.width(); ++x) {
+                pixels(x, y) = texture(x, y);
             }
         }
 
@@ -112,7 +113,7 @@ int main(int, char**) {
             auto u = int(point_in_image.x() / point_in_image.w());
             auto v = int(point_in_image.y() / point_in_image.w());
             if (0 <= u && u < WIDTH && 0 <= v && v < HEIGHT) {
-                pixels[v * WIDTH + u] = packColorRgb(255, 255, 255);
+                pixels(u, v) = packColorRgb(255, 255, 255);
             }
         }
 
