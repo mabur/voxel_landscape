@@ -26,3 +26,6 @@ add_executable(voxel_landscape ${source})
 # SDL2::SDL2main SDL2::SDL2-static
 target_link_libraries(voxel_landscape PRIVATE SDL2::SDL2 Eigen3::Eigen)
 target_compile_features(voxel_landscape PRIVATE cxx_std_17)
+
+# Handle local resource paths:
+file(COPY images/ DESTINATION ${CMAKE_BINARY_DIR}/images)
