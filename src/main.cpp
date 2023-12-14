@@ -98,13 +98,14 @@ void drawTexturedGround(
         auto step_length = 2.0;
         auto point_in_image = Vector4d{double(screen_x), 0, 1, 1};
         auto point_in_world = world_from_image * point_in_image;
-        auto x = extrinsics.x;
-        auto z = extrinsics.z;
-        auto dx = point_in_world.x() / point_in_world.w() - x;
-        auto dz = point_in_world.z() / point_in_world.w() - z;
+
+        auto dx = point_in_world.x() / point_in_world.w() - extrinsics.x;
+        auto dz = point_in_world.z() / point_in_world.w() - extrinsics.z;
         auto d = sqrt(dx * dx + dz * dz);
         dx *= step_length / d;
         dz *= step_length / d;
+        auto offset_x = 0.0;
+        auto offset_z = 0.0;
 
         if (screen_x == 0) {
             printf("dx=%.2f dz=%.2f\n", dx, dz);
@@ -112,8 +113,12 @@ void drawTexturedGround(
 
         auto latest_y = screen.height();
         for (auto step = 0; step < step_count; ++step) {
-            x += dx;
-            z += dz;
+            offset_x += dx;
+            offset_z += dz;
+
+            auto x = extrinsics.x + offset_x;
+            auto z = extrinsics.z + offset_z;
+
             auto texture_u = clamp(0, x, texture.width() - 1);
             auto texture_v = clamp(0, z, texture.height() - 1);
             auto color = texture(texture_u, texture_v);
