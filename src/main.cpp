@@ -78,16 +78,6 @@ CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     return extrinsics;
 }
 
-void drawTexture(Array2<PixelArgb>& screen, const Array2<PixelArgb>& texture) {
-    const auto width = std::min<int>(texture.width(), screen.width());
-    const auto height = std::min<int>(texture.height(), screen.height());
-    for (auto y = 0; y < height; ++y) {
-        for (auto x = 0; x < width; ++x) {
-            screen(x, y) = texture(x, y);
-        }
-    }
-}
-
 void drawTexturedGround(
     Array2<PixelArgb>& screen,
     const Array2<PixelArgb>& texture,
@@ -149,15 +139,7 @@ int main(int, char**) {
     extrinsics.x = texture.width() / 2;
     extrinsics.z = -10;
     extrinsics.yaw = 3.14;
-
     printCameraCoordinates(extrinsics);
-
-
-
-    auto points = Vectors4d{
-        {1,1,1,1},{1,-1,1,1},{-1,-1,1,1},{-1,1,1,1},
-        {1,1,-1,1},{1,-1,-1,1},{-1,-1,-1,1},{-1,1,-1,1},
-    };
 
     for (;;) {
         registerFrameInput(window.renderer);
@@ -165,26 +147,13 @@ int main(int, char**) {
             break;
         }
         extrinsics = moveCamera(extrinsics);
-
         fill(pixels, packColorRgb(0, 0, 0));
-        //drawTexture(pixels, texture);
         drawTexturedGround(
             pixels,
             texture,
             intrinsics,
             extrinsics
         );
-
-        auto image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
-        for (auto point_in_world : points) {
-            auto point_in_image = (image_from_world * point_in_world).eval();
-            auto u = int(point_in_image.x() / point_in_image.w());
-            auto v = int(point_in_image.y() / point_in_image.w());
-            if (0 <= u && u < WIDTH && 0 <= v && v < HEIGHT) {
-                pixels(u, v) = packColorRgb(255, 255, 255);
-            }
-        }
-
         drawPixels(window, pixels.data());
         presentWindow(window);
     }
