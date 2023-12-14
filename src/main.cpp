@@ -94,9 +94,14 @@ void drawTexturedGround(
         auto point_in_world = world_from_image * point_in_image;
         auto x = extrinsics.x;
         auto z = extrinsics.z;
-        auto dx = step_length * (point_in_world.x() / point_in_world.w() - x);
-        auto dz = step_length * (point_in_world.z() / point_in_world.w() - z);
-        printf("dx=%.2f dz=%.2f\n", dx, dz);
+        auto dx = point_in_world.x() / point_in_world.w() - x;
+        auto dz = point_in_world.z() / point_in_world.w() - z;
+        auto d = sqrt(dx * dx + dz * dz);
+        dx *= step_length / d;
+        dz *= step_length / d;
+        if (screen_x == 0) {
+            printf("dx=%.2f dz=%.2f\n", dx, dz);
+        }
 
         for (auto step = 0; step < step_count; ++step) {
             x += dx;
