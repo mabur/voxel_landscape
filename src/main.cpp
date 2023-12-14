@@ -27,6 +27,8 @@ PixelArgb packColorRgb(uint32_t r, uint32_t g, uint32_t b) {
     return (255 << 24) | (r << 16) | (g << 8) | (b << 0);
 }
 
+const auto SKY_COLOR = packColorRgb(154, 223, 255);
+
 PixelArgb* readPpm(const char* file_path, int* width, int* height) {
     using namespace std;
     ifstream file(file_path);
@@ -79,8 +81,7 @@ CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
 }
 
 void drawSky(Array2<PixelArgb>& screen) {
-    auto sky = packColorRgb(154, 223, 255);
-    fill(screen, sky);
+    fill(screen, SKY_COLOR);
 }
 
 void drawTexturedGround(
