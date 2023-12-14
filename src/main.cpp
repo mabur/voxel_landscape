@@ -62,7 +62,7 @@ Array2<PixelArgb> readPpm(const char* file_path) {
 }
 
 CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
-    auto speed = 0.5;
+    auto speed = 1.0;
     if (isKeyDown(SDL_SCANCODE_LEFT)) {
         extrinsics.x += speed;
     }
@@ -104,17 +104,25 @@ void drawTexturedGround(
             printf("dx=%.2f dz=%.2f\n", dx, dz);
         }
 
+        auto latest_y = screen.height();
         for (auto step = 0; step < step_count; ++step) {
             x += dx;
             z += dz;
             auto texture_u = clamp(0, x, texture.width() - 1);
             auto texture_v = clamp(0, z, texture.height() - 1);
+            auto color = texture(texture_u, texture_v);
+
             auto ground_height = -20.0;
             auto texture_point_in_world = Vector4d{x, ground_height, z, 1};
             auto texture_point_in_image = (image_from_world * texture_point_in_world).eval();
             auto screen_y = texture_point_in_image.y() / texture_point_in_image.w();
-            screen_y = clamp(0, screen_y, screen.height() - 1);
-            screen(screen_x, screen_y) = texture(texture_u, texture_v);
+
+            if (0 <= screen_y && screen_y <= screen.height() - 1) {
+                for (auto y = screen_y; y < latest_y; ++y) {
+                    screen(screen_x, y) = color;
+                }
+                latest_y = screen_y;
+            }
         }
     }
 }
