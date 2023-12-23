@@ -196,7 +196,6 @@ int main(int, char**) {
     extrinsics.yaw = 3.14;
 
     for (;;) {
-        printCameraCoordinates(extrinsics);
         registerFrameInput(window.renderer);
         if (hasReceivedQuitEvent() || isKeyDown(SDL_SCANCODE_ESCAPE)) {
             break;
