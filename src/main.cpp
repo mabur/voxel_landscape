@@ -8,13 +8,13 @@
 #include <vector>
 
 #include <Eigen/Core>
+#include <iglo/input.hpp>
+#include <iglo/window.hpp>
 #include <SDL2/SDL.h>
 
 #include "algorithm.hpp"
 #include "array2.hpp"
 #include "camera.hpp"
-#include "input.hpp"
-#include "window.hpp"
 
 using PixelArgb = uint32_t;
 
