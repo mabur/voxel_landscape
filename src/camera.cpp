@@ -47,3 +47,14 @@ CameraIntrinsics makeCameraIntrinsics(size_t width, size_t height)
 Vector4d cameraInWorld(const CameraExtrinsics& coordinates) {
     return { coordinates.x, coordinates.y, coordinates.z, 1 };
 }
+
+CameraExtrinsics translateCamera(
+    CameraExtrinsics extrinsics, double dx_in_cam, double dy_in_cam, double dz_in_cam
+) {
+    auto v_in_camera = Vector4d{dx_in_cam, dy_in_cam, dz_in_cam, 0};
+    auto v_in_world = (worldFromCamera(extrinsics) * v_in_camera).eval();
+    extrinsics.x += v_in_world.x();
+    extrinsics.y += v_in_world.y();
+    extrinsics.z += v_in_world.z();
+    return extrinsics;
+}
