@@ -101,6 +101,12 @@ CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     if (isKeyDown(SDL_SCANCODE_DOWN)) {
         extrinsics.z -= speed;
     }
+    if (isKeyDown(SDL_SCANCODE_RSHIFT)) {
+        extrinsics.y += speed;
+    }
+    if (isKeyDown(SDL_SCANCODE_RCTRL)) {
+        extrinsics.y -= speed;
+    }
     return extrinsics;
 }
 
