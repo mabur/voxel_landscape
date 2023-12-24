@@ -89,16 +89,16 @@ Array2<PixelArgb> readPpm(const char* file_path) {
 
 CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     auto speed = 1.0;
-    if (isKeyDown(SDL_SCANCODE_LEFT)) {
+    if (isKeyDown(SDL_SCANCODE_A)) {
         extrinsics.x += speed;
     }
-    if (isKeyDown(SDL_SCANCODE_RIGHT)) {
+    if (isKeyDown(SDL_SCANCODE_D)) {
         extrinsics.x -= speed;
     }
-    if (isKeyDown(SDL_SCANCODE_UP)) {
+    if (isKeyDown(SDL_SCANCODE_W)) {
         extrinsics.z += speed;
     }
-    if (isKeyDown(SDL_SCANCODE_DOWN)) {
+    if (isKeyDown(SDL_SCANCODE_S)) {
         extrinsics.z -= speed;
     }
     if (isKeyDown(SDL_SCANCODE_RSHIFT)) {
