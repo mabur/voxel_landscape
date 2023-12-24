@@ -89,24 +89,39 @@ Array2<PixelArgb> readPpm(const char* file_path) {
 
 CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     auto speed = 1.0;
-    if (isKeyDown(SDL_SCANCODE_A)) {
-        extrinsics.x += speed;
-    }
+    auto angle_speed = 3.14 / 180 * 1;
+    auto x = 0.0;
+    auto y = 0.0;
+    auto z = 0.0;
     if (isKeyDown(SDL_SCANCODE_D)) {
-        extrinsics.x -= speed;
+        x += speed;
+    }
+    if (isKeyDown(SDL_SCANCODE_A)) {
+        x -= speed;
     }
     if (isKeyDown(SDL_SCANCODE_W)) {
-        extrinsics.z += speed;
+        z += speed;
     }
     if (isKeyDown(SDL_SCANCODE_S)) {
-        extrinsics.z -= speed;
-    }
-    if (isKeyDown(SDL_SCANCODE_RSHIFT)) {
-        extrinsics.y += speed;
+        z -= speed;
     }
     if (isKeyDown(SDL_SCANCODE_RCTRL)) {
-        extrinsics.y -= speed;
+        y += speed;
     }
+    if (isKeyDown(SDL_SCANCODE_RSHIFT)) {
+        y -= speed;
+    }
+    if (isKeyDown(SDL_SCANCODE_RIGHT)) {
+        extrinsics.yaw += angle_speed;
+    }
+    if (isKeyDown(SDL_SCANCODE_LEFT)) {
+        extrinsics.yaw -= angle_speed;
+    }
+    auto v_in_camera = Vector4d{x, y, z, 0};
+    auto v_in_world = (worldFromCamera(extrinsics) * v_in_camera).eval();
+    extrinsics.x += v_in_world.x();
+    extrinsics.y += v_in_world.y();
+    extrinsics.z += v_in_world.z();
     return extrinsics;
 }
 
