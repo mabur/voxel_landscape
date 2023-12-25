@@ -150,10 +150,19 @@ void drawTexturedGround(
     auto forward_in_camera = Vector4d{0, 0, 1, 0};
     auto right_in_world = (worldFromCamera(extrinsics) * right_in_camera).eval();
     auto forward_in_world = (worldFromCamera(extrinsics) * forward_in_camera).eval();
-
+    
+    static auto step_length = 2.0;
+    if (isKeyReleased(SDL_SCANCODE_1)) {
+        step_length *= 1.1;
+        printf("step_length %.2f\n", step_length);
+    }
+    if (isKeyReleased(SDL_SCANCODE_2)) {
+        step_length *= 0.9;
+        printf("step_length %.2f\n", step_length);
+    }
+    
     for (auto screen_x = 0; screen_x < screen.width(); ++screen_x) {
         auto step_count = 200;
-        auto step_length = 2.0;
         
         auto dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
         auto dz_in_camera = 1;
@@ -164,7 +173,7 @@ void drawTexturedGround(
         auto dx_in_world = delta_in_world.x();
         auto dz_in_world = delta_in_world.z();
 
-        auto latest_y = screen.height();
+        auto latest_y = int(screen.height());
         for (auto step = 0; step < step_count; ++step) {
             auto shading = clampd(0, 200.0 / (dz_in_camera * step), 1);
             shading *= shading * shading * shading;
@@ -177,7 +186,7 @@ void drawTexturedGround(
             
             auto texture_point_in_world = Vector4d{x, 0, z, 1};
             auto texture_point_in_image = (image_from_world * texture_point_in_world).eval();
-            auto next_screen_y = texture_point_in_image.y() / texture_point_in_image.w();
+            auto next_screen_y = int(texture_point_in_image.y() / texture_point_in_image.w());
 
             if (0 <= next_screen_y && next_screen_y <= screen.height() - 1) {
                 for (auto screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
