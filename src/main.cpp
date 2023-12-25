@@ -157,22 +157,20 @@ void drawTexturedGround(
         
         auto dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
         auto dz_in_camera = 1;
+        dx_in_camera *= step_length;
+        dz_in_camera *= step_length;
+        
         auto delta_in_world = dx_in_camera * right_in_world + dz_in_camera * forward_in_world;
-        auto dx = delta_in_world.x() * step_length;
-        auto dz = delta_in_world.z() * step_length;
-        auto offset_x = 0.0;
-        auto offset_z = 0.0;
+        auto dx_in_world = delta_in_world.x();
+        auto dz_in_world = delta_in_world.z();
 
         auto latest_y = screen.height();
         for (auto step = 0; step < step_count; ++step) {
-            offset_x += dx;
-            offset_z += dz;
-            auto shading = clampd(0, 200.0 / offset_z, 1);
+            auto shading = clampd(0, 200.0 / (dz_in_camera * step), 1);
             shading *= shading * shading * shading;
-            //shading = 1.0;
 
-            auto x = extrinsics.x + offset_x;
-            auto z = extrinsics.z + offset_z;
+            auto x = extrinsics.x + dx_in_world * step;
+            auto z = extrinsics.z + dz_in_world * step;
             
             auto texture_color = sampleTexture(texture, x, z);
             auto color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
