@@ -142,16 +142,15 @@ void drawTexturedGround(
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics
 ) {
-    auto image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
-    auto world_from_image = image_from_world.inverse().eval();
-    auto camera_from_image = cameraFromImage(intrinsics);
+    Matrix4d image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
+    Matrix4d camera_from_image = cameraFromImage(intrinsics);
+
+    Vector4d right_in_camera = {1, 0, 0, 0};
+    Vector4d forward_in_camera = {0, 0, 1, 0};
+    Vector4d right_in_world = worldFromCamera(extrinsics) * right_in_camera;
+    Vector4d forward_in_world = worldFromCamera(extrinsics) * forward_in_camera;
     
-    auto right_in_camera = Vector4d{1, 0, 0, 0};
-    auto forward_in_camera = Vector4d{0, 0, 1, 0};
-    auto right_in_world = (worldFromCamera(extrinsics) * right_in_camera).eval();
-    auto forward_in_world = (worldFromCamera(extrinsics) * forward_in_camera).eval();
-    
-    static auto step_length = 2.0;
+    static double step_length = 2.0;
     if (isKeyReleased(SDL_SCANCODE_1)) {
         step_length *= 1.1;
         printf("step_length %.2f\n", step_length);
@@ -161,35 +160,35 @@ void drawTexturedGround(
         printf("step_length %.2f\n", step_length);
     }
     
-    for (auto screen_x = 0; screen_x < screen.width(); ++screen_x) {
-        auto step_count = 200;
+    for (int screen_x = 0; screen_x < screen.width(); ++screen_x) {
+        int step_count = 200;
         
-        auto dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
-        auto dz_in_camera = 1;
+        double dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
+        double dz_in_camera = 1;
         dx_in_camera *= step_length;
         dz_in_camera *= step_length;
         
-        auto delta_in_world = dx_in_camera * right_in_world + dz_in_camera * forward_in_world;
-        auto dx_in_world = delta_in_world.x();
-        auto dz_in_world = delta_in_world.z();
+        Vector4d delta_in_world = dx_in_camera * right_in_world + dz_in_camera * forward_in_world;
+        double dx_in_world = delta_in_world.x();
+        double dz_in_world = delta_in_world.z();
 
-        auto latest_y = int(screen.height());
-        for (auto step = 0; step < step_count; ++step) {
-            auto shading = clampd(0, 200.0 / (dz_in_camera * step), 1);
+        int latest_y = int(screen.height());
+        for (int step = 0; step < step_count; ++step) {
+            double shading = clampd(0.0, 200.0 / (dz_in_camera * step), 1.0);
             shading *= shading * shading * shading;
 
-            auto x = extrinsics.x + dx_in_world * step;
-            auto z = extrinsics.z + dz_in_world * step;
-            
-            auto texture_color = sampleTexture(texture, x, z);
-            auto color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
-            
-            auto texture_point_in_world = Vector4d{x, 0, z, 1};
-            auto texture_point_in_image = (image_from_world * texture_point_in_world).eval();
-            auto next_screen_y = int(texture_point_in_image.y() / texture_point_in_image.w());
+            double x = extrinsics.x + dx_in_world * step;
+            double z = extrinsics.z + dz_in_world * step;
+
+            PixelArgb texture_color = sampleTexture(texture, x, z);
+            PixelArgb color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
+
+            Vector4d texture_point_in_world = {x, 0, z, 1};
+            Vector4d texture_point_in_image = image_from_world * texture_point_in_world;
+            int next_screen_y = int(texture_point_in_image.y() / texture_point_in_image.w());
 
             if (0 <= next_screen_y && next_screen_y <= screen.height() - 1) {
-                for (auto screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
+                for (int screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
                     screen(screen_x, screen_y) = color;
                 }
                 latest_y = next_screen_y;
