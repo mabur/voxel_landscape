@@ -155,15 +155,11 @@ void drawTexturedGround(
         auto step_count = 200;
         auto step_length = 2.0;
         
-        auto dx_in_camera = screen_x - 0.5 * screen.width();
-        auto dz_in_camera = intrinsics.fx;
+        auto dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
+        auto dz_in_camera = 1;
         auto delta_in_world = dx_in_camera * right_in_world + dz_in_camera * forward_in_world;
-        auto dx = delta_in_world.x();
-        auto dz = delta_in_world.z();
-        
-        auto d = dz_in_camera;
-        dx *= step_length / d;
-        dz *= step_length / d;
+        auto dx = delta_in_world.x() * step_length;
+        auto dz = delta_in_world.z() * step_length;
         auto offset_x = 0.0;
         auto offset_z = 0.0;
 
@@ -171,8 +167,7 @@ void drawTexturedGround(
         for (auto step = 0; step < step_count; ++step) {
             offset_x += dx;
             offset_z += dz;
-            auto offset = hypot(offset_x, offset_z);
-            auto shading = clampd(0, 200.0 / offset, 1);
+            auto shading = clampd(0, 200.0 / offset_z, 1);
             shading *= shading * shading * shading;
             //shading = 1.0;
 
