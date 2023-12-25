@@ -2,6 +2,11 @@
 
 #include "vector_space.hpp"
 
+// In camera coordinate system:
+// x is right
+// y is down
+// z is forward
+
 struct CameraExtrinsics
 {
     double x;
@@ -26,6 +31,7 @@ CameraIntrinsics makeCameraIntrinsics(size_t width, size_t height);
 Vector4d cameraInWorld(const CameraExtrinsics& coordinates);
 
 Matrix4d imageFromCamera(const CameraIntrinsics& intrinsics);
+Matrix4d cameraFromImage(const CameraIntrinsics& intrinsics);
 Matrix4d worldFromCamera(const CameraExtrinsics& coordinates);
 Matrix4d cameraFromWorld(const CameraExtrinsics& coordinates);
 

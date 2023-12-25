@@ -32,6 +32,10 @@ Matrix4d imageFromCamera(const CameraIntrinsics& c)
     return image_from_camera;
 }
 
+Matrix4d cameraFromImage(const CameraIntrinsics& intrinsics) {
+    return imageFromCamera(intrinsics).inverse();
+}
+
 CameraIntrinsics makeCameraIntrinsics(size_t width, size_t height)
 {
     auto intrinsics = CameraIntrinsics{};

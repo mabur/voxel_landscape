@@ -144,16 +144,24 @@ void drawTexturedGround(
 ) {
     auto image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
     auto world_from_image = image_from_world.inverse().eval();
+    auto camera_from_image = cameraFromImage(intrinsics);
+    
+    auto right_in_camera = Vector4d{1, 0, 0, 0};
+    auto forward_in_camera = Vector4d{0, 0, 1, 0};
+    auto right_in_world = (worldFromCamera(extrinsics) * right_in_camera).eval();
+    auto forward_in_world = (worldFromCamera(extrinsics) * forward_in_camera).eval();
 
     for (auto screen_x = 0; screen_x < screen.width(); ++screen_x) {
         auto step_count = 200;
         auto step_length = 2.0;
-        auto point_in_image = Vector4d{double(screen_x), 0, 1, 1};
-        auto point_in_world = world_from_image * point_in_image;
-
-        auto dx = point_in_world.x() / point_in_world.w() - extrinsics.x;
-        auto dz = point_in_world.z() / point_in_world.w() - extrinsics.z;
-        auto d = hypot(dx, dz);
+        
+        auto dx_in_camera = screen_x - 0.5 * screen.width();
+        auto dz_in_camera = intrinsics.fx;
+        auto delta_in_world = dx_in_camera * right_in_world + dz_in_camera * forward_in_world;
+        auto dx = delta_in_world.x();
+        auto dz = delta_in_world.z();
+        
+        auto d = dz_in_camera;
         dx *= step_length / d;
         dz *= step_length / d;
         auto offset_x = 0.0;
