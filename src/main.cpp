@@ -149,7 +149,8 @@ void drawTexturedGround(
     Vector4d forward_in_camera = {0, 0, 1, 0};
     Vector4d right_in_world = worldFromCamera(extrinsics) * right_in_camera;
     Vector4d forward_in_world = worldFromCamera(extrinsics) * forward_in_camera;
-    
+
+    int step_count = 200;
     static double step_length = 2.0;
     if (isKeyReleased(SDL_SCANCODE_1)) {
         step_length *= 1.1;
@@ -161,8 +162,6 @@ void drawTexturedGround(
     }
     
     for (int screen_x = 0; screen_x < screen.width(); ++screen_x) {
-        int step_count = 200;
-        
         double dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
         double dz_in_camera = 1;
         dx_in_camera *= step_length;
