@@ -130,6 +130,12 @@ void drawSky(Array2<PixelArgb>& screen) {
     }
 }
 
+PixelArgb sampleTexture(const Array2<PixelArgb>& texture, double x, double y) {
+    auto texture_u = clamp(0, x, texture.width() - 1);
+    auto texture_v = clamp(0, y, texture.height() - 1);
+    return texture(texture_u, texture_v);
+}
+
 void drawTexturedGround(
     Array2<PixelArgb>& screen,
     const Array2<PixelArgb>& texture,
@@ -164,10 +170,8 @@ void drawTexturedGround(
 
             auto x = extrinsics.x + offset_x;
             auto z = extrinsics.z + offset_z;
-
-            auto texture_u = clamp(0, x, texture.width() - 1);
-            auto texture_v = clamp(0, z, texture.height() - 1);
-            auto texture_color = texture(texture_u, texture_v);
+            
+            auto texture_color = sampleTexture(texture, x, z);
             auto color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
 
             auto ground_height = -20.0;
