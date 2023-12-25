@@ -164,8 +164,6 @@ void drawTexturedGround(
     for (int screen_x = 0; screen_x < screen.width(); ++screen_x) {
         double dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
         double dz_in_camera = 1;
-        dx_in_camera *= step_length;
-        dz_in_camera *= step_length;
         
         Vector4d delta_in_world = dx_in_camera * right_in_world + dz_in_camera * forward_in_world;
         double dx_in_world = delta_in_world.x();
@@ -173,11 +171,12 @@ void drawTexturedGround(
 
         int latest_y = int(screen.height());
         for (int step = 0; step < step_count; ++step) {
-            double shading = clampd(0.0, 200.0 / (dz_in_camera * step), 1.0);
+            double total_length = step * step_length;
+            double shading = clampd(0.0, 200.0 / (dz_in_camera * total_length), 1.0);
             shading *= shading * shading * shading;
 
-            double x = extrinsics.x + dx_in_world * step;
-            double z = extrinsics.z + dz_in_world * step;
+            double x = extrinsics.x + dx_in_world * total_length;
+            double z = extrinsics.z + dz_in_world * total_length;
 
             PixelArgb texture_color = sampleTexture(texture, x, z);
             PixelArgb color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
