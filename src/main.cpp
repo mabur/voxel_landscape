@@ -174,9 +174,8 @@ void drawTexturedGround(
             
             auto texture_color = sampleTexture(texture, x, z);
             auto color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
-
-            auto ground_height = -20.0;
-            auto texture_point_in_world = Vector4d{x, ground_height, z, 1};
+            
+            auto texture_point_in_world = Vector4d{x, 0, z, 1};
             auto texture_point_in_image = (image_from_world * texture_point_in_world).eval();
             auto next_screen_y = texture_point_in_image.y() / texture_point_in_image.w();
 
@@ -213,6 +212,7 @@ int main(int, char**) {
     // extrinsics.x = texture.width() / 2;
     // extrinsics.z = -10;
     extrinsics.x = 110;
+    extrinsics.y = 20;
     extrinsics.z = -1;
     extrinsics.yaw = 3.14;
 
