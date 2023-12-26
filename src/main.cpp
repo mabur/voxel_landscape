@@ -142,13 +142,12 @@ void drawTexturedGround(
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics
 ) {
-    Matrix4d image_from_world = (imageFromCamera(intrinsics) * cameraFromWorld(extrinsics)).eval();
-    Matrix4d camera_from_image = cameraFromImage(intrinsics);
-
+    Matrix4d image_from_world = imageFromCamera(intrinsics) * cameraFromWorld(extrinsics);
+    Matrix4d world_from_camera = worldFromCamera(extrinsics);
     Vector4d right_in_camera = {1, 0, 0, 0};
     Vector4d forward_in_camera = {0, 0, 1, 0};
-    Vector4d right_in_world = worldFromCamera(extrinsics) * right_in_camera;
-    Vector4d forward_in_world = worldFromCamera(extrinsics) * forward_in_camera;
+    Vector4d right_in_world = world_from_camera * right_in_camera;
+    Vector4d forward_in_world = world_from_camera * forward_in_camera;
 
     int step_count = 200;
     static double step_size = 0.01;
