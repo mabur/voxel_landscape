@@ -1,22 +1,24 @@
 #define SDL_MAIN_HANDLED
 
-#include <algorithm>
 #include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 #include <fstream>
-#include <vector>
 
 #include <Eigen/Core>
 #include <iglo/input.hpp>
 #include <iglo/window.hpp>
 #include <SDL2/SDL.h>
 
-#include "algorithm.hpp"
-#include "array2.hpp"
 #include "camera.hpp"
 
 using PixelArgb = uint32_t;
+
+struct Image {
+    PixelArgb* data;
+    int width;
+    int height;
+};
 
 int clamp(int minimum, int value, int maximum) {
     if (value < minimum) return minimum;
@@ -78,12 +80,9 @@ PixelArgb* readPpm(const char* file_path, int* width, int* height) {
     return pixels;
 }
 
-Array2<PixelArgb> readPpm(const char* file_path) {
-    auto width = 0;
-    auto height = 0;
-    auto data = readPpm(file_path, &width, &height);
-    auto image = Array2<PixelArgb>(width, height, 0);
-    std::copy(data, data + image.size(), image.data());
+Image readPpm(const char* file_path) {
+    auto image = Image{};
+    image.data = readPpm(file_path, &image.width, &image.height);
     return image;
 }
 
@@ -120,25 +119,26 @@ CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     return translateCamera(extrinsics, x, y, z);
 }
 
-void drawSky(Array2<PixelArgb>& screen) {
-    for (auto y = 0; y < screen.height(); ++y) {
-        auto t = 2.0 * y / screen.height();
+void drawSky(Image screen) {
+    auto i = 0; 
+    for (auto y = 0; y < screen.height; ++y) {
+        auto t = 2.0 * y / screen.height;
         auto color = interpolateColors(DARK_SKY_COLOR, LIGHT_SKY_COLOR, t);
-        for (auto x = 0; x < screen.width(); ++x) {
-            screen(x, y) = color;
+        for (auto x = 0; x < screen.width; ++x, ++i) {
+            screen.data[i] = color;
         }
     }
 }
 
-PixelArgb sampleTexture(const Array2<PixelArgb>& texture, double x, double y) {
-    auto texture_u = clamp(0, x, texture.width() - 1);
-    auto texture_v = clamp(0, y, texture.height() - 1);
-    return texture(texture_u, texture_v);
+PixelArgb sampleTexture(Image texture, double x, double y) {
+    auto texture_u = clamp(0, x, texture.width - 1);
+    auto texture_v = clamp(0, y, texture.height - 1);
+    return texture.data[texture_v * texture.width + texture_u];
 }
 
 void drawTexturedGround(
-    Array2<PixelArgb>& screen,
-    const Array2<PixelArgb>& texture,
+    Image screen,
+    Image texture,
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics
 ) {
@@ -160,15 +160,15 @@ void drawTexturedGround(
         printf("step_size %.4f\n", step_size);
     }
     
-    for (int screen_x = 0; screen_x < screen.width(); ++screen_x) {
-        double dx_in_camera = (screen_x - 0.5 * screen.width()) / intrinsics.fx;
+    for (int screen_x = 0; screen_x < screen.width; ++screen_x) {
+        double dx_in_camera = (screen_x - 0.5 * screen.width) / intrinsics.fx;
         double dz_in_camera = 1;
         
         Vector4d delta_in_world = dx_in_camera * right_in_world + dz_in_camera * forward_in_world;
         double dx_in_world = delta_in_world.x();
         double dz_in_world = delta_in_world.z();
 
-        int latest_y = int(screen.height());
+        int latest_y = int(screen.height);
         for (int step = 0; step < step_count; ++step) {
             double total_length = step * step * step_size;
             double shading = clampd(0.0, 200.0 / (dz_in_camera * total_length), 1.0);
@@ -184,9 +184,9 @@ void drawTexturedGround(
             Vector4d texture_point_in_image = image_from_world * texture_point_in_world;
             int next_screen_y = int(texture_point_in_image.y() / texture_point_in_image.w());
 
-            if (0 <= next_screen_y && next_screen_y <= screen.height() - 1) {
+            if (0 <= next_screen_y && next_screen_y <= screen.height - 1) {
                 for (int screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
-                    screen(screen_x, screen_y) = color;
+                    screen.data[screen_y * screen.width + screen_x] = color;
                 }
                 latest_y = next_screen_y;
             }
@@ -209,7 +209,10 @@ int main(int, char**) {
     auto WIDTH = 320;
     auto HEIGHT = 200;
     auto window = makeFullScreenWindow(WIDTH, HEIGHT, "Voxel Landscape");
-    auto pixels = Array2<PixelArgb>(WIDTH, HEIGHT, 0);
+    auto pixels = Image{};
+    pixels.width = WIDTH;
+    pixels.height = HEIGHT;
+    pixels.data = (PixelArgb*)malloc(WIDTH * HEIGHT * sizeof(PixelArgb));
     SDL_ShowCursor(SDL_DISABLE);
     auto texture = readPpm("images/texture.ppm");
     auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
@@ -234,7 +237,7 @@ int main(int, char**) {
             intrinsics,
             extrinsics
         );
-        drawPixels(window, pixels.data());
+        drawPixels(window, pixels.data);
         presentWindow(window);
     }
     destroyWindow(window);
