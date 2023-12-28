@@ -216,6 +216,18 @@ void drawTexturedGround(
     }
 }
 
+void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics extrinsics) {
+    auto scale = 4;
+    for (auto y = 0; y < texture.height; ++y) {
+        for (auto x = 0; x < texture.width; ++x) {
+            auto target_x = screen.width - x / scale;
+            auto target_y = texture.height / scale - y / scale;
+            screen.data[target_y * screen.width + target_x] =
+                texture.data[y * texture.width + x];
+        }
+    }
+}
+
 void printCameraCoordinates(CameraExtrinsics extrinsics) {
     auto forward_in_camera = Vector4d{0, 0, 1, 0};
     auto forward_in_world = (worldFromCamera(extrinsics) * forward_in_camera).eval();
@@ -231,10 +243,10 @@ int main(int, char**) {
     auto WIDTH = 320;
     auto HEIGHT = 200;
     auto window = makeFullScreenWindow(WIDTH, HEIGHT, "Voxel Landscape");
-    auto pixels = Image{};
-    pixels.width = WIDTH;
-    pixels.height = HEIGHT;
-    pixels.data = (PixelArgb*)malloc(WIDTH * HEIGHT * sizeof(PixelArgb));
+    auto screen = Image{};
+    screen.width = WIDTH;
+    screen.height = HEIGHT;
+    screen.data = (PixelArgb*)malloc(WIDTH * HEIGHT * sizeof(PixelArgb));
     SDL_ShowCursor(SDL_DISABLE);
     auto texture = readPpm("images/texture.ppm");
     auto height_map = readPpm("images/height_map.ppm");
@@ -254,16 +266,17 @@ int main(int, char**) {
         }
         extrinsics = moveCamera(extrinsics);
         auto step_parameters = getStepParameters();
-        drawSky(pixels);
+        drawSky(screen);
         drawTexturedGround(
-            pixels,
+            screen,
             texture,
             height_map,
             intrinsics,
             extrinsics,
             step_parameters
         );
-        drawPixels(window, pixels.data);
+        drawMap(screen, texture, height_map, extrinsics);
+        drawPixels(window, screen.data);
         presentWindow(window);
     }
     destroyWindow(window);
