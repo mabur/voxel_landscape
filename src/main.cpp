@@ -1,5 +1,6 @@
 #define SDL_MAIN_HANDLED
 
+#include <algorithm>
 #include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,6 +84,10 @@ PixelArgb* readPpm(const char* file_path, int* width, int* height) {
 Image readPpm(const char* file_path) {
     auto image = Image{};
     image.data = readPpm(file_path, &image.width, &image.height);
+    if (!image.data || !image.width || !image.height) {
+        printf("Error reading %s data:%u width:%u height:%u", file_path, image.width, image.height);
+        exit(1);
+    }
     return image;
 }
 
@@ -139,6 +144,7 @@ PixelArgb sampleTexture(Image texture, double x, double y) {
 void drawTexturedGround(
     Image screen,
     Image texture,
+    Image height_map,
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics
 ) {
@@ -177,18 +183,21 @@ void drawTexturedGround(
             double x = extrinsics.x + dx_in_world * total_length;
             double z = extrinsics.z + dz_in_world * total_length;
 
+            PixelArgb height_color = sampleTexture(height_map, x, z);
             PixelArgb texture_color = sampleTexture(texture, x, z);
             PixelArgb color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
+            uint32_t y;
+            unpackColorRgb(height_color, &y, &y, &y);
 
-            Vector4d texture_point_in_world = {x, 0, z, 1};
+            Vector4d texture_point_in_world = {x, 0.05 * y, z, 1};
             Vector4d texture_point_in_image = image_from_world * texture_point_in_world;
             int next_screen_y = int(texture_point_in_image.y() / texture_point_in_image.w());
-
-            if (0 <= next_screen_y && next_screen_y <= screen.height - 1) {
+            
+            if (0 <= next_screen_y && next_screen_y < screen.height) {
                 for (int screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
                     screen.data[screen_y * screen.width + screen_x] = color;
                 }
-                latest_y = next_screen_y;
+                latest_y = std::min(latest_y, next_screen_y);
             }
         }
     }
@@ -215,6 +224,7 @@ int main(int, char**) {
     pixels.data = (PixelArgb*)malloc(WIDTH * HEIGHT * sizeof(PixelArgb));
     SDL_ShowCursor(SDL_DISABLE);
     auto texture = readPpm("images/texture.ppm");
+    auto height_map = readPpm("images/height_map.ppm");
     auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
     auto extrinsics = CameraExtrinsics{};
     // extrinsics.x = texture.width() / 2;
@@ -234,6 +244,7 @@ int main(int, char**) {
         drawTexturedGround(
             pixels,
             texture,
+            height_map,
             intrinsics,
             extrinsics
         );
