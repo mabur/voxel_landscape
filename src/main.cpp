@@ -220,8 +220,8 @@ void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics ext
     auto scale = 8;
     for (auto y = 0; y < texture.height; ++y) {
         for (auto x = 0; x < texture.width; ++x) {
-            auto target_x = screen.width - x / scale;
-            auto target_y = texture.height / scale - y / scale;
+            auto target_x = screen.width - x / scale - 1;
+            auto target_y = texture.height / scale - y / scale - 1;
             screen.data[target_y * screen.width + target_x] =
                 texture.data[y * texture.width + x];
         }
@@ -229,8 +229,8 @@ void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics ext
     if (0 <= extrinsics.x && extrinsics.x < texture.width &&
         0 <= extrinsics.z && extrinsics.z < texture.height
     ) {
-        auto target_x = screen.width - int(extrinsics.x) / scale;
-        auto target_y = texture.height / scale - int(extrinsics.z) / scale;
+        auto target_x = screen.width - int(extrinsics.x) / scale - 1;
+        auto target_y = texture.height / scale - int(extrinsics.z) / scale - 1;
         screen.data[target_y * screen.width + target_x] = packColorRgb(255, 255, 255);
     }
 }
