@@ -149,7 +149,7 @@ uint32_t sampleGrayTexture(Image texture, double x, double y) {
 }
 
 struct StepParameters {
-    int step_count = 200;
+    int step_count = 256;
     double step_size = 0.01;
 };
 
@@ -162,6 +162,14 @@ StepParameters getStepParameters() {
     if (isKeyReleased(SDL_SCANCODE_2)) {
         parameters.step_size *= 0.9;
         printf("step_size %.4f\n", parameters.step_size);
+    }
+    if (isKeyReleased(SDL_SCANCODE_3)) {
+        parameters.step_count += 8;
+        printf("step_count %d\n", parameters.step_count);
+    }
+    if (isKeyReleased(SDL_SCANCODE_4)) {
+        parameters.step_count -= 8;
+        printf("step_count %d\n", parameters.step_count);
     }
     return parameters;
 }
