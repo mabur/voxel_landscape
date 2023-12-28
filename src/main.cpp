@@ -141,12 +141,31 @@ PixelArgb sampleTexture(Image texture, double x, double y) {
     return texture.data[texture_v * texture.width + texture_u];
 }
 
+struct StepParameters {
+    int step_count = 200;
+    double step_size = 0.01;
+};
+
+StepParameters getStepParameters() {
+    static auto parameters = StepParameters{};
+    if (isKeyReleased(SDL_SCANCODE_1)) {
+        parameters.step_size *= 1.1;
+        printf("step_size %.4f\n", parameters.step_size);
+    }
+    if (isKeyReleased(SDL_SCANCODE_2)) {
+        parameters.step_size *= 0.9;
+        printf("step_size %.4f\n", parameters.step_size);
+    }
+    return parameters;
+}
+
 void drawTexturedGround(
     Image screen,
     Image texture,
     Image height_map,
     CameraIntrinsics intrinsics,
-    CameraExtrinsics extrinsics
+    CameraExtrinsics extrinsics,
+    StepParameters step_parameters
 ) {
     Matrix4d image_from_world = imageFromCamera(intrinsics) * cameraFromWorld(extrinsics);
     Matrix4d world_from_camera = worldFromCamera(extrinsics);
@@ -154,17 +173,6 @@ void drawTexturedGround(
     Vector4d forward_in_camera = {0, 0, 1, 0};
     Vector4d right_in_world = world_from_camera * right_in_camera;
     Vector4d forward_in_world = world_from_camera * forward_in_camera;
-
-    int step_count = 200;
-    static double step_size = 0.01;
-    if (isKeyReleased(SDL_SCANCODE_1)) {
-        step_size *= 1.1;
-        printf("step_size %.4f\n", step_size);
-    }
-    if (isKeyReleased(SDL_SCANCODE_2)) {
-        step_size *= 0.9;
-        printf("step_size %.4f\n", step_size);
-    }
     
     for (int screen_x = 0; screen_x < screen.width; ++screen_x) {
         double dx_in_camera = (screen_x - 0.5 * screen.width) / intrinsics.fx;
@@ -175,8 +183,8 @@ void drawTexturedGround(
         double dz_in_world = delta_in_world.z();
 
         int latest_y = int(screen.height);
-        for (int step = 0; step < step_count; ++step) {
-            double total_length = step * step * step_size;
+        for (int step = 0; step < step_parameters.step_count; ++step) {
+            double total_length = step * step * step_parameters.step_size;
             double shading = clampd(0.0, 200.0 / (dz_in_camera * total_length), 1.0);
             shading *= shading * shading * shading;
 
@@ -240,13 +248,15 @@ int main(int, char**) {
             break;
         }
         extrinsics = moveCamera(extrinsics);
+        auto step_parameters = getStepParameters();
         drawSky(pixels);
         drawTexturedGround(
             pixels,
             texture,
             height_map,
             intrinsics,
-            extrinsics
+            extrinsics,
+            step_parameters
         );
         drawPixels(window, pixels.data);
         presentWindow(window);
