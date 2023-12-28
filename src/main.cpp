@@ -226,6 +226,13 @@ void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics ext
                 texture.data[y * texture.width + x];
         }
     }
+    if (0 <= extrinsics.x && extrinsics.x < texture.width &&
+        0 <= extrinsics.z && extrinsics.z < texture.height
+    ) {
+        auto target_x = screen.width - int(extrinsics.x) / scale;
+        auto target_y = texture.height / scale - int(extrinsics.z) / scale;
+        screen.data[target_y * screen.width + target_x] = packColorRgb(255, 255, 255);
+    }
 }
 
 void printCameraCoordinates(CameraExtrinsics extrinsics) {
