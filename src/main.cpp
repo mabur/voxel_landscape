@@ -141,6 +141,13 @@ PixelArgb sampleTexture(Image texture, double x, double y) {
     return texture.data[texture_v * texture.width + texture_u];
 }
 
+uint32_t sampleGrayTexture(Image texture, double x, double y) {
+    auto color = sampleTexture(texture, x, y);
+    uint32_t gray;
+    unpackColorRgb(color, &gray, &gray, &gray);
+    return gray;
+}
+
 struct StepParameters {
     int step_count = 200;
     double step_size = 0.01;
@@ -191,11 +198,9 @@ void drawTexturedGround(
             double x = extrinsics.x + dx_in_world * total_length;
             double z = extrinsics.z + dz_in_world * total_length;
 
-            PixelArgb height_color = sampleTexture(height_map, x, z);
+            uint32_t y = sampleGrayTexture(height_map, x, z);
             PixelArgb texture_color = sampleTexture(texture, x, z);
             PixelArgb color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
-            uint32_t y;
-            unpackColorRgb(height_color, &y, &y, &y);
 
             Vector4d texture_point_in_world = {x, 0.05 * y, z, 1};
             Vector4d texture_point_in_image = image_from_world * texture_point_in_world;
