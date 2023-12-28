@@ -217,7 +217,7 @@ void drawTexturedGround(
 }
 
 void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics extrinsics) {
-    auto scale = 4;
+    auto scale = 8;
     for (auto y = 0; y < texture.height; ++y) {
         for (auto x = 0; x < texture.width; ++x) {
             auto target_x = screen.width - x / scale;
@@ -257,6 +257,13 @@ int main(int, char**) {
     SDL_ShowCursor(SDL_DISABLE);
     auto texture = readPpm("images/texture.ppm");
     auto height_map = readPpm("images/height_map.ppm");
+    
+    if (texture.width != height_map.width || texture.height != height_map.height) {
+        printf("Texture and height map should have the same size");
+        exit(1);
+    }
+    
+    
     auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
     auto extrinsics = CameraExtrinsics{};
     // extrinsics.x = texture.width() / 2;
