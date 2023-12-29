@@ -200,7 +200,7 @@ void drawTexturedGround(
         int latest_y = int(screen.height);
         for (int step = 0; step < step_parameters.step_count; ++step) {
             double total_length = step * step * step_parameters.step_size;
-            double shading = clampd(0.0, 200.0 / (dz_in_camera * total_length), 1.0);
+            double shading = clampd(0.0, 300.0 / (dz_in_camera * total_length), 1.0);
             shading *= shading * shading * shading;
 
             double x = extrinsics.x + dx_in_world * total_length;
