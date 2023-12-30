@@ -32,3 +32,5 @@ void drawTexturedGround(
 );
 
 void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics extrinsics);
+
+double sampleHeightMap(Image height_map, double x, double y);

@@ -14,6 +14,8 @@
 #include "camera.hpp"
 #include "graphics.hpp"
 
+enum {BALL_MOVING, BALL_STILL};
+
 CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     auto SPEED = 1.0;
     auto ANGLE_SPEED = 3.14 / 180 * 1;
@@ -90,22 +92,15 @@ int main(int, char**) {
     SDL_ShowCursor(SDL_DISABLE);
     auto texture = readPpm("images/texture.ppm");
     auto height_map = readPpm("images/height_map.ppm");
-    
     if (texture.width != height_map.width || texture.height != height_map.height) {
         printf("Texture and height map should have the same size");
         exit(1);
     }
-    
-    
     auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
-    auto extrinsics = CameraExtrinsics{};
-    // extrinsics.x = texture.width() / 2;
-    // extrinsics.z = -10;
-    extrinsics.x = 110;
-    extrinsics.y = 20;
-    extrinsics.z = -1;
-    extrinsics.yaw = 3.14;
-
+    auto extrinsics = CameraExtrinsics{.x = 110, .y = 20, .z = -1, .yaw = 3.14};
+    auto player_state = BALL_STILL;
+    auto ball_velocity_in_world = Vector4d{0, 0, 0, 0};
+    
     for (;;) {
         registerFrameInput(window.renderer);
         if (hasReceivedQuitEvent() || isKeyDown(SDL_SCANCODE_ESCAPE)) {
@@ -113,6 +108,24 @@ int main(int, char**) {
         }
         extrinsics = moveCamera(extrinsics);
         auto step_parameters = getStepParameters();
+        
+        if (isKeyReleased(SDL_SCANCODE_SPACE)) {
+            player_state = BALL_MOVING;
+            auto ball_velocity_in_camera = Vector4d{0, -0.5, 0.5, 0};
+            auto world_from_camera = worldFromCamera(extrinsics);
+            ball_velocity_in_world = world_from_camera * ball_velocity_in_camera;
+        }
+        extrinsics.x += ball_velocity_in_world.x();
+        extrinsics.y += ball_velocity_in_world.y();
+        extrinsics.z += ball_velocity_in_world.z();
+        if (player_state == BALL_MOVING) {
+            ball_velocity_in_world.y() -= 0.003;
+            auto ground_height = sampleHeightMap(height_map, extrinsics.x, extrinsics.z);
+            if (extrinsics.y < ground_height) {
+                ball_velocity_in_world.y() *= -1;
+            }
+        }
+        
         drawSky(screen);
         drawTexturedGround(
             screen,

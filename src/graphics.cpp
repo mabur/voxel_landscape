@@ -98,6 +98,10 @@ uint32_t sampleGrayTexture(Image texture, double x, double y) {
     return gray;
 }
 
+double sampleHeightMap(Image height_map, double x, double y) {
+    return 0.05 * sampleGrayTexture(height_map, x, y); 
+}
+
 void drawTexturedGround(
     Image screen,
     Image texture,
@@ -130,11 +134,11 @@ void drawTexturedGround(
             double x = extrinsics.x + dx_in_world * total_length;
             double z = extrinsics.z + dz_in_world * total_length;
 
-            uint32_t y = sampleGrayTexture(height_map, x, z);
+            double y = sampleHeightMap(height_map, x, z);
             PixelArgb texture_color = sampleTexture(texture, x, z);
             PixelArgb color = interpolateColors(LIGHT_SKY_COLOR, texture_color, shading);
 
-            Vector4d texture_point_in_world = {x, 0.05 * y, z, 1};
+            Vector4d texture_point_in_world = {x, y, z, 1};
             Vector4d texture_point_in_image = image_from_world * texture_point_in_world;
             int next_screen_y = int(texture_point_in_image.y() / texture_point_in_image.w());
 

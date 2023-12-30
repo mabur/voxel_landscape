@@ -31,7 +31,7 @@ target_link_libraries(voxel_landscape PRIVATE
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         )
 
-target_compile_features(voxel_landscape PRIVATE cxx_std_17)
+target_compile_features(voxel_landscape PRIVATE cxx_std_20)
 
 # Handle local resource paths:
 file(COPY images/ DESTINATION ${CMAKE_BINARY_DIR}/images)
