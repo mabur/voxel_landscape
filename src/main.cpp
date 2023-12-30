@@ -85,6 +85,17 @@ struct Player {
     Vector4d ball_velocity_in_world;
 };
 
+Player controlPlayer(Player player) {
+    player.extrinsics = moveCamera(player.extrinsics);
+    if (isKeyReleased(SDL_SCANCODE_SPACE)) {
+        player.ball_state = BALL_MOVING;
+        auto ball_velocity_in_camera = Vector4d{0, -0.5, 0.5, 0};
+        auto world_from_camera = worldFromCamera(player.extrinsics);
+        player.ball_velocity_in_world = world_from_camera * ball_velocity_in_camera;
+    }
+    return player;
+}
+
 int main(int, char**) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         handleSdlError("SDL_Init");
@@ -115,15 +126,9 @@ int main(int, char**) {
         if (hasReceivedQuitEvent() || isKeyDown(SDL_SCANCODE_ESCAPE)) {
             break;
         }
-        player.extrinsics = moveCamera(player.extrinsics);
         auto step_parameters = getStepParameters();
+        player = controlPlayer(player);
         
-        if (isKeyReleased(SDL_SCANCODE_SPACE)) {
-            player.ball_state = BALL_MOVING;
-            auto ball_velocity_in_camera = Vector4d{0, -0.5, 0.5, 0};
-            auto world_from_camera = worldFromCamera(player.extrinsics);
-            player.ball_velocity_in_world = world_from_camera * ball_velocity_in_camera;
-        }
         player.extrinsics.x += player.ball_velocity_in_world.x();
         player.extrinsics.y += player.ball_velocity_in_world.y();
         player.extrinsics.z += player.ball_velocity_in_world.z();
