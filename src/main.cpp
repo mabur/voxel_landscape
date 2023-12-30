@@ -96,6 +96,27 @@ Player controlPlayer(Player player) {
     return player;
 }
 
+Player updateBall(Player player, Image height_map) {
+    if (player.ball_state == BALL_STILL) {
+        return player;
+    }
+    player.extrinsics.x += player.ball_velocity_in_world.x();
+    player.extrinsics.y += player.ball_velocity_in_world.y();
+    player.extrinsics.z += player.ball_velocity_in_world.z();
+    player.ball_velocity_in_world.y() -= 0.003;
+    auto ground_height = sampleHeightMap(height_map, player.extrinsics.x, player.extrinsics.z);
+    if (player.extrinsics.y < ground_height) {
+        player.extrinsics.y = ground_height;
+        player.ball_velocity_in_world.y() *= -1;
+        player.ball_velocity_in_world *= 0.5;
+        if (player.ball_velocity_in_world.norm() < 0.1) {
+            player.ball_velocity_in_world = {0, 0, 0, 0};
+            player.ball_state = BALL_STILL;
+        }
+    }
+    return player;
+}
+
 int main(int, char**) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         handleSdlError("SDL_Init");
@@ -128,24 +149,7 @@ int main(int, char**) {
         }
         auto step_parameters = getStepParameters();
         player = controlPlayer(player);
-        
-        player.extrinsics.x += player.ball_velocity_in_world.x();
-        player.extrinsics.y += player.ball_velocity_in_world.y();
-        player.extrinsics.z += player.ball_velocity_in_world.z();
-        if (player.ball_state == BALL_MOVING) {
-            player.ball_velocity_in_world.y() -= 0.003;
-            auto ground_height = sampleHeightMap(height_map, player.extrinsics.x, player.extrinsics.z);
-            if (player.extrinsics.y < ground_height) {
-                player.extrinsics.y = ground_height;
-                player.ball_velocity_in_world.y() *= -1;
-                player.ball_velocity_in_world *= 0.5;
-                if (player.ball_velocity_in_world.norm() < 0.1) {
-                    player.ball_velocity_in_world = {0, 0, 0, 0};
-                    player.ball_state = BALL_STILL;
-                }
-            }
-        }
-        
+        player = updateBall(player, height_map);
         drawSky(screen);
         drawTexturedGround(
             screen,
