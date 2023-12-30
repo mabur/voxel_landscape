@@ -109,7 +109,7 @@ Player updateBall(Player player, Image height_map) {
         player.extrinsics.y = ground_height;
         player.ball_velocity_in_world.y() *= -1;
         player.ball_velocity_in_world *= 0.5;
-        if (player.ball_velocity_in_world.norm() < 0.1) {
+        if (player.ball_velocity_in_world.norm() < 0.01) {
             player.ball_velocity_in_world = {0, 0, 0, 0};
             player.ball_state = BALL_STILL;
         }
