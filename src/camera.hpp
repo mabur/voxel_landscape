@@ -28,12 +28,12 @@ struct CameraIntrinsics
 
 CameraIntrinsics makeCameraIntrinsics(size_t width, size_t height);
 
-Vector4d cameraInWorld(const CameraExtrinsics& coordinates);
+Vector4d cameraInWorld(CameraExtrinsics coordinates);
 
-Matrix4d imageFromCamera(const CameraIntrinsics& intrinsics);
-Matrix4d cameraFromImage(const CameraIntrinsics& intrinsics);
-Matrix4d worldFromCamera(const CameraExtrinsics& coordinates);
-Matrix4d cameraFromWorld(const CameraExtrinsics& coordinates);
+Matrix4d imageFromCamera(CameraIntrinsics intrinsics);
+Matrix4d cameraFromImage(CameraIntrinsics intrinsics);
+Matrix4d worldFromCamera(CameraExtrinsics extrinsics);
+Matrix4d cameraFromWorld(CameraExtrinsics extrinsics);
 
 CameraExtrinsics translateCamera(
     CameraExtrinsics extrinsics, double dx_in_cam, double dy_in_cam, double dz_in_cam
