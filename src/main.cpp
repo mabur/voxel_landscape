@@ -122,7 +122,13 @@ int main(int, char**) {
             ball_velocity_in_world.y() -= 0.003;
             auto ground_height = sampleHeightMap(height_map, extrinsics.x, extrinsics.z);
             if (extrinsics.y < ground_height) {
+                extrinsics.y = ground_height;
                 ball_velocity_in_world.y() *= -1;
+                ball_velocity_in_world *= 0.5;
+                if (ball_velocity_in_world.norm() < 0.1) {
+                    ball_velocity_in_world = {0, 0, 0, 0};
+                    player_state = BALL_STILL;
+                }
             }
         }
         
