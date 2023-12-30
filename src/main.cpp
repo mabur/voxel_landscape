@@ -14,7 +14,7 @@
 #include "camera.hpp"
 #include "graphics.hpp"
 
-enum {BALL_MOVING, BALL_STILL};
+enum BallState {BALL_MOVING, BALL_STILL};
 
 CameraExtrinsics moveCamera(CameraExtrinsics extrinsics) {
     auto SPEED = 1.0;
@@ -78,6 +78,13 @@ void printCameraCoordinates(CameraExtrinsics extrinsics) {
     printf("Forward direction %.0f %.0f %.0f\n", forward_in_world.x(), forward_in_world.y(), forward_in_world.z());
 }
 
+struct Player {
+    CameraIntrinsics intrinsics;
+    CameraExtrinsics extrinsics;
+    BallState ball_state;
+    Vector4d ball_velocity_in_world;
+};
+
 int main(int, char**) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         handleSdlError("SDL_Init");
@@ -96,38 +103,40 @@ int main(int, char**) {
         printf("Texture and height map should have the same size");
         exit(1);
     }
-    auto intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT);
-    auto extrinsics = CameraExtrinsics{.x = 110, .y = 20, .z = -1, .yaw = 3.14};
-    auto player_state = BALL_STILL;
-    auto ball_velocity_in_world = Vector4d{0, 0, 0, 0};
+    auto player = Player{
+        .intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT),
+        .extrinsics = CameraExtrinsics{ .x = 110, .y = 20, .z = -1, .yaw = 3.14 },
+        .ball_state = BALL_STILL,
+        .ball_velocity_in_world = Vector4d{ 0, 0, 0, 0 },
+    };
     
     for (;;) {
         registerFrameInput(window.renderer);
         if (hasReceivedQuitEvent() || isKeyDown(SDL_SCANCODE_ESCAPE)) {
             break;
         }
-        extrinsics = moveCamera(extrinsics);
+        player.extrinsics = moveCamera(player.extrinsics);
         auto step_parameters = getStepParameters();
         
         if (isKeyReleased(SDL_SCANCODE_SPACE)) {
-            player_state = BALL_MOVING;
+            player.ball_state = BALL_MOVING;
             auto ball_velocity_in_camera = Vector4d{0, -0.5, 0.5, 0};
-            auto world_from_camera = worldFromCamera(extrinsics);
-            ball_velocity_in_world = world_from_camera * ball_velocity_in_camera;
+            auto world_from_camera = worldFromCamera(player.extrinsics);
+            player.ball_velocity_in_world = world_from_camera * ball_velocity_in_camera;
         }
-        extrinsics.x += ball_velocity_in_world.x();
-        extrinsics.y += ball_velocity_in_world.y();
-        extrinsics.z += ball_velocity_in_world.z();
-        if (player_state == BALL_MOVING) {
-            ball_velocity_in_world.y() -= 0.003;
-            auto ground_height = sampleHeightMap(height_map, extrinsics.x, extrinsics.z);
-            if (extrinsics.y < ground_height) {
-                extrinsics.y = ground_height;
-                ball_velocity_in_world.y() *= -1;
-                ball_velocity_in_world *= 0.5;
-                if (ball_velocity_in_world.norm() < 0.1) {
-                    ball_velocity_in_world = {0, 0, 0, 0};
-                    player_state = BALL_STILL;
+        player.extrinsics.x += player.ball_velocity_in_world.x();
+        player.extrinsics.y += player.ball_velocity_in_world.y();
+        player.extrinsics.z += player.ball_velocity_in_world.z();
+        if (player.ball_state == BALL_MOVING) {
+            player.ball_velocity_in_world.y() -= 0.003;
+            auto ground_height = sampleHeightMap(height_map, player.extrinsics.x, player.extrinsics.z);
+            if (player.extrinsics.y < ground_height) {
+                player.extrinsics.y = ground_height;
+                player.ball_velocity_in_world.y() *= -1;
+                player.ball_velocity_in_world *= 0.5;
+                if (player.ball_velocity_in_world.norm() < 0.1) {
+                    player.ball_velocity_in_world = {0, 0, 0, 0};
+                    player.ball_state = BALL_STILL;
                 }
             }
         }
@@ -137,11 +146,11 @@ int main(int, char**) {
             screen,
             texture,
             height_map,
-            intrinsics,
-            extrinsics,
+            player.intrinsics,
+            player.extrinsics,
             step_parameters
         );
-        drawMap(screen, texture, height_map, extrinsics);
+        drawMap(screen, texture, height_map, player.extrinsics);
         drawPixels(window, screen.data);
         presentWindow(window);
     }
