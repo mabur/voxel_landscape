@@ -12,6 +12,14 @@ Image makeImage(int width, int height) {
     };
 }
 
+Imaged makeImaged(int width, int height) {
+    return Imaged{
+        .data = (double*)malloc(width * height * sizeof(double)),
+        .width = width,
+        .height = height,
+    };
+}
+
 int clampi(int minimum, int value, int maximum) {
     if (value < minimum) return minimum;
     if (value > maximum) return maximum;
@@ -82,13 +90,14 @@ Image readPpm(const char* file_path) {
     return image;
 }
 
-void drawSky(Image screen) {
+void drawSky(Image screen, Imaged depth_buffer) {
     auto i = 0;
     for (auto y = 0; y < screen.height; ++y) {
         auto t = 2.0 * y / screen.height;
         auto color = interpolateColors(DARK_SKY_COLOR, LIGHT_SKY_COLOR, t);
         for (auto x = 0; x < screen.width; ++x, ++i) {
             screen.data[i] = color;
+            depth_buffer.data[i] = INFINITY;
         }
     }
 }
@@ -112,6 +121,7 @@ double sampleHeightMap(Image height_map, double x, double y) {
 
 void drawTexturedGround(
     Image screen,
+    Imaged depth_buffer,
     Image texture,
     Image height_map,
     CameraIntrinsics intrinsics,
@@ -152,7 +162,11 @@ void drawTexturedGround(
 
             if (0 <= next_screen_y && next_screen_y < screen.height) {
                 for (int screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
-                    screen.data[screen_y * screen.width + screen_x] = color;
+                    auto i = screen_y * screen.width + screen_x;
+                    if (depth_buffer.data[i] > z) {
+                        depth_buffer.data[i] = z;
+                        screen.data[i] = color;    
+                    }
                 }
                 latest_y = mini(latest_y, next_screen_y);
             }
@@ -162,6 +176,7 @@ void drawTexturedGround(
 
 void drawBall(
     Image screen,
+    Imaged depth_buffer,
     Vector4d ball_in_world,
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics
@@ -199,6 +214,7 @@ void drawMap(Image screen, Image texture, Image height_map, Vector4d ball_in_wor
 
 void draw(
     Image screen,
+    Imaged depth_buffer,
     Image texture,
     Image height_map,
     Vector4d ball_in_world,
@@ -206,9 +222,10 @@ void draw(
     CameraExtrinsics extrinsics,
     StepParameters step_parameters
 ) {
-    drawSky(screen);
+    drawSky(screen, depth_buffer);
     drawTexturedGround(
         screen,
+        depth_buffer,
         texture,
         height_map,
         intrinsics,
@@ -217,6 +234,7 @@ void draw(
     );
     drawBall(
         screen,
+        depth_buffer,
         ball_in_world,
         intrinsics,
         extrinsics

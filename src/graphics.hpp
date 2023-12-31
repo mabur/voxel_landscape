@@ -15,7 +15,14 @@ struct Image {
     int height;
 };
 
+struct Imaged {
+    double* data;
+    int width;
+    int height;
+};
+
 Image makeImage(int width, int height);
+Imaged makeImaged(int width, int height);
 
 struct StepParameters {
     int step_count = 256;
@@ -28,6 +35,7 @@ double sampleHeightMap(Image height_map, double x, double y);
 
 void draw(
     Image screen,
+    Imaged depth_buffer,
     Image texture,
     Image height_map,
     Vector4d ball_in_world,

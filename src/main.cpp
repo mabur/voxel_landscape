@@ -140,6 +140,7 @@ int main(int, char**) {
     auto HEIGHT = 200;
     auto window = makeFullScreenWindow(WIDTH, HEIGHT, "Voxel Landscape");
     auto screen = makeImage(WIDTH, HEIGHT);
+    auto depth_buffer = makeImaged(WIDTH, HEIGHT);
     SDL_ShowCursor(SDL_DISABLE);
     auto texture = readPpm("images/texture.ppm");
     auto height_map = readPpm("images/height_map.ppm");
@@ -165,6 +166,7 @@ int main(int, char**) {
         
         draw(
             screen,
+            depth_buffer,
             texture,
             height_map,
             player.ball.position_in_world,
