@@ -222,7 +222,7 @@ void drawFlag(
             auto i = y * screen.width + x;
             if (z <= depth_buffer.data[i]) {
                 depth_buffer.data[i] = z;
-                screen.data[i] = packColorRgb(255, 0, 0);
+                screen.data[i] = packColorRgb(230, 80, 80);
             }
         }
     }
