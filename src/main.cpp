@@ -154,6 +154,8 @@ int main(int, char**) {
         .ball = {.position_in_world = {110, 0, 1, 1}, .velocity_in_world = Vector4d{ 0, 0, 0, 0 }, .state = BALL_STILL},
     };
     auto flag_in_world = Vector4d{130, 0, 20, 1};
+    flag_in_world.y() = sampleHeightMap(height_map, flag_in_world.x(), flag_in_world.z());
+    player.ball.position_in_world.y() = sampleHeightMap(height_map, player.ball.position_in_world.x(), player.ball.position_in_world.z());
     
     for (;;) {
         registerFrameInput(window.renderer);
