@@ -22,24 +22,14 @@ struct StepParameters {
 
 Image readPpm(const char* file_path);
 
-void drawSky(Image screen);
+double sampleHeightMap(Image height_map, double x, double y);
 
-void drawTexturedGround(
+void draw(
     Image screen,
     Image texture,
     Image height_map,
+    Vector4d ball_in_world,
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics,
     StepParameters step_parameters
 );
-
-void drawBall(
-    Image screen,
-    Vector4d ball_in_world,
-    CameraIntrinsics intrinsics,
-    CameraExtrinsics extrinsics
-);
-
-void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics extrinsics);
-
-double sampleHeightMap(Image height_map, double x, double y);

@@ -169,22 +169,15 @@ int main(int, char**) {
         player.ball = updateBall(player.ball, height_map);
         player = updateCamera(player);
         
-        drawSky(screen);
-        drawTexturedGround(
+        draw(
             screen,
             texture,
             height_map,
+            player.ball.position_in_world,
             player.intrinsics,
             player.extrinsics,
             step_parameters
         );
-        drawBall(
-            screen,
-            player.ball.position_in_world,
-            player.intrinsics,
-            player.extrinsics
-        );
-        drawMap(screen, texture, height_map, player.extrinsics);
         drawPixels(window, screen.data);
         presentWindow(window);
     }

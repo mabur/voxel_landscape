@@ -188,3 +188,30 @@ void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics ext
         screen.data[target_y * screen.width + target_x] = packColorRgb(255, 255, 255);
     }
 }
+
+void draw(
+    Image screen,
+    Image texture,
+    Image height_map,
+    Vector4d ball_in_world,
+    CameraIntrinsics intrinsics,
+    CameraExtrinsics extrinsics,
+    StepParameters step_parameters
+) {
+    drawSky(screen);
+    drawTexturedGround(
+        screen,
+        texture,
+        height_map,
+        intrinsics,
+        extrinsics,
+        step_parameters
+    );
+    drawBall(
+        screen,
+        ball_in_world,
+        intrinsics,
+        extrinsics
+    );
+    drawMap(screen, texture, height_map, extrinsics);
+}
