@@ -125,9 +125,13 @@ Ball updateBall(Ball ball, Image height_map) {
 }
 
 Player updateCamera(Player player) {
-    player.extrinsics.x = player.ball.position_in_world.x();
-    player.extrinsics.y = player.ball.position_in_world.y() + 20;
-    player.extrinsics.z = player.ball.position_in_world.z();
+    Matrix4d world_from_camera = worldFromCamera(player.extrinsics);
+    Vector4d offset_in_camera = {0, -20, -20, 0};
+    Vector4d offset_in_world = world_from_camera * offset_in_camera;
+    Vector4d camera_in_world = player.ball.position_in_world + offset_in_world;
+    player.extrinsics.x = camera_in_world.x();
+    player.extrinsics.y = camera_in_world.y();
+    player.extrinsics.z = camera_in_world.z();
     return player;
 }
 
