@@ -1,6 +1,6 @@
 #include "graphics.hpp"
 
-#include <fstream>
+#include <stdio.h>
 
 #include "camera.hpp"
 
@@ -44,27 +44,23 @@ const auto DARK_SKY_COLOR = packColorRgb(0, 145, 212);
 const auto LIGHT_SKY_COLOR = packColorRgb(154, 223, 255);
 
 PixelArgb* readPpm(const char* file_path, int* width, int* height) {
-    using namespace std;
-    ifstream file(file_path);
-    if (file.fail()) {
-        return 0;
+    auto file = fopen(file_path, "r");
+    if (file == nullptr) {
+        return nullptr;
     }
-    string line;
-    getline(file, line); // P3
-    getline(file, line); // # Created by Paint Shop Pro 7 # CREATOR: GIMP PNM Filter Version 1.1
     int max_intensity;
-    file >> *width >> *height >> max_intensity;
-
-    const auto pixel_count = (*width) * (*height);
-
-    PixelArgb* pixels = (PixelArgb*)malloc(pixel_count * sizeof(PixelArgb));
-    for (auto i = 0; i < pixel_count; ++i) {
-        int r, g, b;
-        file >> r >> g >> b;
+    char line[256];
+    fgets(line, sizeof(line), file); // P3
+    fgets(line, sizeof(line), file); // # Created by Paint Shop Pro 7 # CREATOR: GIMP PNM Filter Version 1.1
+    fscanf(file, "%d %d %d", width, height, &max_intensity);
+    auto pixel_count = (*width) * (*height);
+    auto pixels = (PixelArgb*)malloc(pixel_count * sizeof(PixelArgb));
+    for (int i = 0; i < pixel_count; ++i) {
+        uint32_t r, g, b;
+        fscanf(file, "%d %d %d", &r, &g, &b);
         pixels[i] = packColorRgb(r, g, b);
     }
-    file.close();
-
+    fclose(file);
     return pixels;
 }
 
