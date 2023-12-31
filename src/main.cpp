@@ -124,6 +124,13 @@ Ball updateBall(Ball ball, Image height_map) {
     return ball;
 }
 
+Player updateCamera(Player player) {
+    player.extrinsics.x = player.ball.position_in_world.x();
+    player.extrinsics.y = player.ball.position_in_world.y() + 20;
+    player.extrinsics.z = player.ball.position_in_world.z();
+    return player;
+}
+
 int main(int, char**) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         handleSdlError("SDL_Init");
@@ -156,10 +163,7 @@ int main(int, char**) {
         auto step_parameters = getStepParameters();
         player = controlPlayer(player);
         player.ball = updateBall(player.ball, height_map);
-
-        player.extrinsics.x = player.ball.position_in_world.x();
-        player.extrinsics.y = player.ball.position_in_world.y() + 20;
-        player.extrinsics.z = player.ball.position_in_world.z();
+        player = updateCamera(player);
         
         drawSky(screen);
         drawTexturedGround(
