@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include "vector_space.hpp"
+
 struct CameraIntrinsics;
 struct CameraExtrinsics;
     
@@ -29,6 +31,13 @@ void drawTexturedGround(
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics,
     StepParameters step_parameters
+);
+
+void drawBall(
+    Image screen,
+    Vector4d ball_in_world,
+    CameraIntrinsics intrinsics,
+    CameraExtrinsics extrinsics
 );
 
 void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics extrinsics);

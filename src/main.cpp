@@ -126,7 +126,7 @@ Ball updateBall(Ball ball, Image height_map) {
 
 Player updateCamera(Player player) {
     Matrix4d world_from_camera = worldFromCamera(player.extrinsics);
-    Vector4d offset_in_camera = {0, -20, -20, 0};
+    Vector4d offset_in_camera = {0, -20, -30, 0};
     Vector4d offset_in_world = world_from_camera * offset_in_camera;
     Vector4d camera_in_world = player.ball.position_in_world + offset_in_world;
     player.extrinsics.x = camera_in_world.x();
@@ -177,6 +177,12 @@ int main(int, char**) {
             player.intrinsics,
             player.extrinsics,
             step_parameters
+        );
+        drawBall(
+            screen,
+            player.ball.position_in_world,
+            player.intrinsics,
+            player.extrinsics
         );
         drawMap(screen, texture, height_map, player.extrinsics);
         drawPixels(window, screen.data);

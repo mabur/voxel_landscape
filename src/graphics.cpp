@@ -152,6 +152,21 @@ void drawTexturedGround(
     }
 }
 
+void drawBall(
+    Image screen,
+    Vector4d ball_in_world,
+    CameraIntrinsics intrinsics,
+    CameraExtrinsics extrinsics
+) {
+    Matrix4d image_from_world = imageFromCamera(intrinsics) * cameraFromWorld(extrinsics);
+    Vector4d ball_in_image = image_from_world * ball_in_world;
+    auto u = int(ball_in_image.x() / ball_in_image.w());
+    auto v = int(ball_in_image.y() / ball_in_image.w());
+    if (0 <= u && u < screen.width && 0 <= v && v < screen.height) {
+        screen.data[v * screen.width + u] = packColorRgb(255, 255, 255);
+    }
+}
+
 void drawMap(Image screen, Image texture, Image height_map, CameraExtrinsics extrinsics) {
     auto scale = 8;
     for (auto y = 0; y < texture.height; ++y) {
