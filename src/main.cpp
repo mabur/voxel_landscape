@@ -79,8 +79,9 @@ void printCameraCoordinates(CameraExtrinsics extrinsics) {
 }
 
 struct Ball {
-    BallState state;
+    Vector4d position_in_world;
     Vector4d velocity_in_world;
+    BallState state;
 };
 
 struct Player {
@@ -100,25 +101,27 @@ Player controlPlayer(Player player) {
     return player;
 }
 
-Player updateBall(Player player, Image height_map) {
-    if (player.ball.state == BALL_STILL) {
-        return player;
+Ball updateBall(Ball ball, Image height_map) {
+    if (ball.state == BALL_STILL) {
+        return ball;
     }
-    player.extrinsics.x += player.ball.velocity_in_world.x();
-    player.extrinsics.y += player.ball.velocity_in_world.y();
-    player.extrinsics.z += player.ball.velocity_in_world.z();
-    player.ball.velocity_in_world.y() -= 0.003;
-    auto ground_height = sampleHeightMap(height_map, player.extrinsics.x, player.extrinsics.z);
-    if (player.extrinsics.y < ground_height) {
-        player.extrinsics.y = ground_height;
-        player.ball.velocity_in_world.y() *= -1;
-        player.ball.velocity_in_world *= 0.5;
-        if (player.ball.velocity_in_world.norm() < 0.01) {
-            player.ball.velocity_in_world = {0, 0, 0, 0};
-            player.ball.state = BALL_STILL;
+    ball.position_in_world += ball.velocity_in_world;
+    ball.velocity_in_world.y() -= 0.003;
+    auto ground_height = sampleHeightMap(
+        height_map,
+        ball.position_in_world.x(),
+        ball.position_in_world.z()
+    );
+    if (ball.position_in_world.y() < ground_height) {
+        ball.position_in_world.y() = ground_height;
+        ball.velocity_in_world.y() *= -1;
+        ball.velocity_in_world *= 0.5;
+        if (ball.velocity_in_world.norm() < 0.01) {
+            ball.velocity_in_world = {0, 0, 0, 0};
+            ball.state = BALL_STILL;
         }
     }
-    return player;
+    return ball;
 }
 
 int main(int, char**) {
@@ -141,8 +144,8 @@ int main(int, char**) {
     }
     auto player = Player{
         .intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT),
-        .extrinsics = CameraExtrinsics{ .x = 110, .y = 20, .z = -1, .yaw = 3.14 },
-        .ball = Ball{.state = BALL_STILL, .velocity_in_world = Vector4d{ 0, 0, 0, 0 }},
+        .extrinsics = CameraExtrinsics{ .yaw = 3.14 },
+        .ball = {.position_in_world = {110, 0, -1, 1}, .velocity_in_world = Vector4d{ 0, 0, 0, 0 }, .state = BALL_STILL},
     };
     
     for (;;) {
@@ -152,7 +155,12 @@ int main(int, char**) {
         }
         auto step_parameters = getStepParameters();
         player = controlPlayer(player);
-        player = updateBall(player, height_map);
+        player.ball = updateBall(player.ball, height_map);
+
+        player.extrinsics.x = player.ball.position_in_world.x();
+        player.extrinsics.y = player.ball.position_in_world.y() + 20;
+        player.extrinsics.z = player.ball.position_in_world.z();
+        
         drawSky(screen);
         drawTexturedGround(
             screen,
