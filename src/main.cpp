@@ -78,40 +78,44 @@ void printCameraCoordinates(CameraExtrinsics extrinsics) {
     printf("Forward direction %.0f %.0f %.0f\n", forward_in_world.x(), forward_in_world.y(), forward_in_world.z());
 }
 
+struct Ball {
+    BallState state;
+    Vector4d velocity_in_world;
+};
+
 struct Player {
     CameraIntrinsics intrinsics;
     CameraExtrinsics extrinsics;
-    BallState ball_state;
-    Vector4d ball_velocity_in_world;
+    Ball ball;
 };
 
 Player controlPlayer(Player player) {
     player.extrinsics = moveCamera(player.extrinsics);
     if (isKeyReleased(SDL_SCANCODE_SPACE)) {
-        player.ball_state = BALL_MOVING;
+        player.ball.state = BALL_MOVING;
         auto ball_velocity_in_camera = Vector4d{0, -0.5, 0.5, 0};
         auto world_from_camera = worldFromCamera(player.extrinsics);
-        player.ball_velocity_in_world = world_from_camera * ball_velocity_in_camera;
+        player.ball.velocity_in_world = world_from_camera * ball_velocity_in_camera;
     }
     return player;
 }
 
 Player updateBall(Player player, Image height_map) {
-    if (player.ball_state == BALL_STILL) {
+    if (player.ball.state == BALL_STILL) {
         return player;
     }
-    player.extrinsics.x += player.ball_velocity_in_world.x();
-    player.extrinsics.y += player.ball_velocity_in_world.y();
-    player.extrinsics.z += player.ball_velocity_in_world.z();
-    player.ball_velocity_in_world.y() -= 0.003;
+    player.extrinsics.x += player.ball.velocity_in_world.x();
+    player.extrinsics.y += player.ball.velocity_in_world.y();
+    player.extrinsics.z += player.ball.velocity_in_world.z();
+    player.ball.velocity_in_world.y() -= 0.003;
     auto ground_height = sampleHeightMap(height_map, player.extrinsics.x, player.extrinsics.z);
     if (player.extrinsics.y < ground_height) {
         player.extrinsics.y = ground_height;
-        player.ball_velocity_in_world.y() *= -1;
-        player.ball_velocity_in_world *= 0.5;
-        if (player.ball_velocity_in_world.norm() < 0.01) {
-            player.ball_velocity_in_world = {0, 0, 0, 0};
-            player.ball_state = BALL_STILL;
+        player.ball.velocity_in_world.y() *= -1;
+        player.ball.velocity_in_world *= 0.5;
+        if (player.ball.velocity_in_world.norm() < 0.01) {
+            player.ball.velocity_in_world = {0, 0, 0, 0};
+            player.ball.state = BALL_STILL;
         }
     }
     return player;
@@ -138,8 +142,7 @@ int main(int, char**) {
     auto player = Player{
         .intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT),
         .extrinsics = CameraExtrinsics{ .x = 110, .y = 20, .z = -1, .yaw = 3.14 },
-        .ball_state = BALL_STILL,
-        .ball_velocity_in_world = Vector4d{ 0, 0, 0, 0 },
+        .ball = Ball{.state = BALL_STILL, .velocity_in_world = Vector4d{ 0, 0, 0, 0 }},
     };
     
     for (;;) {
