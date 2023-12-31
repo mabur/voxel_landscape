@@ -1,10 +1,7 @@
 #define SDL_MAIN_HANDLED
 
-#include <algorithm>
-#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream>
 
 #include <Eigen/Core>
 #include <iglo/input.hpp>

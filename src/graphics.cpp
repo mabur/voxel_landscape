@@ -4,7 +4,7 @@
 
 #include "camera.hpp"
 
-int clamp(int minimum, int value, int maximum) {
+int clampi(int minimum, int value, int maximum) {
     if (value < minimum) return minimum;
     if (value > maximum) return maximum;
     return value;
@@ -14,6 +14,10 @@ double clampd(double minimum, double value, double maximum) {
     if (value < minimum) return minimum;
     if (value > maximum) return maximum;
     return value;
+}
+
+int mini(int a, int b) {
+    return a < b ? a : b;
 }
 
 PixelArgb packColorRgb(uint32_t r, uint32_t g, uint32_t b) {
@@ -30,9 +34,9 @@ PixelArgb interpolateColors(PixelArgb color0, PixelArgb color1, double t) {
     uint32_t r0, g0, b0, r1, g1, b1, r, g, b;
     unpackColorRgb(color0, &r0, &g0, &b0);
     unpackColorRgb(color1, &r1, &g1, &b1);
-    r = clamp(0, r0 * (1 - t) + r1 * t, 255);
-    g = clamp(0, g0 * (1 - t) + g1 * t, 255);
-    b = clamp(0, b0 * (1 - t) + b1 * t, 255);
+    r = clampi(0, r0 * (1 - t) + r1 * t, 255);
+    g = clampi(0, g0 * (1 - t) + g1 * t, 255);
+    b = clampi(0, b0 * (1 - t) + b1 * t, 255);
     return packColorRgb(r, g, b);
 }
 
@@ -86,8 +90,8 @@ void drawSky(Image screen) {
 }
 
 PixelArgb sampleTexture(Image texture, double x, double y) {
-    auto texture_u = clamp(0, x, texture.width - 1);
-    auto texture_v = clamp(0, y, texture.height - 1);
+    auto texture_u = clampi(0, x, texture.width - 1);
+    auto texture_v = clampi(0, y, texture.height - 1);
     return texture.data[texture_v * texture.width + texture_u];
 }
 
@@ -146,7 +150,7 @@ void drawTexturedGround(
                 for (int screen_y = next_screen_y; screen_y < latest_y; ++screen_y) {
                     screen.data[screen_y * screen.width + screen_x] = color;
                 }
-                latest_y = std::min(latest_y, next_screen_y);
+                latest_y = mini(latest_y, next_screen_y);
             }
         }
     }
