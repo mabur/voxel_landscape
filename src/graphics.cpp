@@ -210,7 +210,7 @@ void drawFlag(
     if (0 <= pole_x && pole_x < screen.width - 1) {
         for (auto y = maxi(pole_ymin, 0); y < mini(pole_ymax, screen.height); ++y) {
             auto i = y * screen.width + pole_x;
-            if (z < depth_buffer.data[i]) {
+            if (z <= depth_buffer.data[i]) {
                 depth_buffer.data[i] = z;
                 screen.data[i] = packColorRgb(255, 255, 255);    
             }
@@ -220,7 +220,7 @@ void drawFlag(
     for (auto y = maxi(flag_ymin, 0); y < mini(flag_ymax, screen.height); ++y) {
         for (auto x = maxi(flag_xmin, 0); x < mini(flag_xmax, screen.width); ++x) {
             auto i = y * screen.width + x;
-            if (z < depth_buffer.data[i]) {
+            if (z <= depth_buffer.data[i]) {
                 depth_buffer.data[i] = z;
                 screen.data[i] = packColorRgb(255, 0, 0);
             }
