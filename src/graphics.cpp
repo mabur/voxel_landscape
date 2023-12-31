@@ -237,14 +237,14 @@ void drawMap(
     }
     if (0 <= flag_in_world.x() && flag_in_world.x() < texture.width &&
         0 <= flag_in_world.z() && flag_in_world.z() < texture.height
-        ) {
+    ) {
         auto target_x = screen.width - int(flag_in_world.x()) / scale - 1;
         auto target_y = texture.height / scale - int(flag_in_world.z()) / scale - 1;
         screen.data[target_y * screen.width + target_x] = packColorRgb(255, 0, 0);
     }
     if (0 <= ball_in_world.x() && ball_in_world.x() < texture.width &&
         0 <= ball_in_world.z() && ball_in_world.z() < texture.height
-        ) {
+    ) {
         auto target_x = screen.width - int(ball_in_world.x()) / scale - 1;
         auto target_y = texture.height / scale - int(ball_in_world.z()) / scale - 1;
         screen.data[target_y * screen.width + target_x] = packColorRgb(255, 255, 255);
