@@ -162,8 +162,11 @@ void drawBall(
     Vector4d ball_in_image = image_from_world * ball_in_world;
     auto u = int(ball_in_image.x() / ball_in_image.w());
     auto v = int(ball_in_image.y() / ball_in_image.w());
-    if (0 <= u && u < screen.width && 0 <= v && v < screen.height) {
-        screen.data[v * screen.width + u] = packColorRgb(255, 255, 255);
+    if (0 <= u && u < screen.width - 1 && 0 <= v && v < screen.height - 1) {
+        screen.data[(v + 0) * screen.width + u + 0] = packColorRgb(255, 255, 255);
+        screen.data[(v + 0) * screen.width + u + 1] = packColorRgb(255, 255, 255);
+        screen.data[(v + 1) * screen.width + u + 0] = packColorRgb(255, 255, 255);
+        screen.data[(v + 1) * screen.width + u + 1] = packColorRgb(255, 255, 255);
     }
 }
 
