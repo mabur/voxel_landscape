@@ -186,8 +186,8 @@ void drawFlag(
     CameraExtrinsics extrinsics
 ) {
     double POLE_HEIGHT = 10.0;
-    double FLAG_WIDTH = 2.0;
-    double FLAG_HEIGHT = 1.5;
+    double FLAG_WIDTH = 3.0;
+    double FLAG_HEIGHT = FLAG_WIDTH * 3 / 4;
     Matrix4d image_from_world = imageFromCamera(intrinsics) * cameraFromWorld(extrinsics);
     Vector4d flag_in_image = image_from_world * flag_in_world;
     int u = int(flag_in_image.x() / flag_in_image.w());
