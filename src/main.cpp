@@ -92,7 +92,7 @@ struct Player {
 
 Player controlPlayer(Player player) {
     player.extrinsics = moveCamera(player.extrinsics);
-    if (isKeyReleased(SDL_SCANCODE_SPACE)) {
+    if (player.ball.state == BALL_STILL && isKeyReleased(SDL_SCANCODE_SPACE)) {
         player.ball.state = BALL_MOVING;
         auto ball_velocity_in_camera = Vector4d{0, -0.5, 0.5, 0};
         auto world_from_camera = worldFromCamera(player.extrinsics);
