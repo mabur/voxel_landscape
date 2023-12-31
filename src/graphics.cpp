@@ -219,7 +219,13 @@ void drawBall(
     }
 }
 
-void drawMap(Image screen, Image texture, Image height_map, Vector4d ball_in_world) {
+void drawMap(
+    Image screen,
+    Image texture,
+    Image height_map,
+    Vector4d flag_in_world,
+    Vector4d ball_in_world
+) {
     auto scale = 8;
     for (auto y = 0; y < texture.height; ++y) {
         for (auto x = 0; x < texture.width; ++x) {
@@ -228,6 +234,13 @@ void drawMap(Image screen, Image texture, Image height_map, Vector4d ball_in_wor
             screen.data[target_y * screen.width + target_x] =
                 texture.data[y * texture.width + x];
         }
+    }
+    if (0 <= flag_in_world.x() && flag_in_world.x() < texture.width &&
+        0 <= flag_in_world.z() && flag_in_world.z() < texture.height
+        ) {
+        auto target_x = screen.width - int(flag_in_world.x()) / scale - 1;
+        auto target_y = texture.height / scale - int(flag_in_world.z()) / scale - 1;
+        screen.data[target_y * screen.width + target_x] = packColorRgb(255, 0, 0);
     }
     if (0 <= ball_in_world.x() && ball_in_world.x() < texture.width &&
         0 <= ball_in_world.z() && ball_in_world.z() < texture.height
@@ -273,5 +286,5 @@ void draw(
         intrinsics,
         extrinsics
     );
-    drawMap(screen, texture, height_map, ball_in_world);
+    drawMap(screen, texture, height_map, flag_in_world, ball_in_world);
 }
