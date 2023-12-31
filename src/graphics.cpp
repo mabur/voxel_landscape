@@ -4,6 +4,14 @@
 
 #include "camera.hpp"
 
+Image makeImage(int width, int height) {
+    return Image{
+        .data = (PixelArgb*)malloc(width * height * sizeof(PixelArgb)),
+        .width = width,
+        .height = height,
+    };
+}
+
 int clampi(int minimum, int value, int maximum) {
     if (value < minimum) return minimum;
     if (value > maximum) return maximum;

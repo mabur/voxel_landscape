@@ -139,10 +139,7 @@ int main(int, char**) {
     auto WIDTH = 320;
     auto HEIGHT = 200;
     auto window = makeFullScreenWindow(WIDTH, HEIGHT, "Voxel Landscape");
-    auto screen = Image{};
-    screen.width = WIDTH;
-    screen.height = HEIGHT;
-    screen.data = (PixelArgb*)malloc(WIDTH * HEIGHT * sizeof(PixelArgb));
+    auto screen = makeImage(WIDTH, HEIGHT);
     SDL_ShowCursor(SDL_DISABLE);
     auto texture = readPpm("images/texture.ppm");
     auto height_map = readPpm("images/height_map.ppm");

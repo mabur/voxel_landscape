@@ -15,6 +15,8 @@ struct Image {
     int height;
 };
 
+Image makeImage(int width, int height);
+
 struct StepParameters {
     int step_count = 256;
     double step_size = 0.01;
