@@ -151,8 +151,9 @@ int main(int, char**) {
     auto player = Player{
         .intrinsics = makeCameraIntrinsics(WIDTH, HEIGHT),
         .extrinsics = CameraExtrinsics{ .yaw = 3.14 },
-        .ball = {.position_in_world = {110, 0, -1, 1}, .velocity_in_world = Vector4d{ 0, 0, 0, 0 }, .state = BALL_STILL},
+        .ball = {.position_in_world = {110, 0, 1, 1}, .velocity_in_world = Vector4d{ 0, 0, 0, 0 }, .state = BALL_STILL},
     };
+    auto flag_in_world = Vector4d{130, 0, 20, 1};
     
     for (;;) {
         registerFrameInput(window.renderer);
@@ -169,6 +170,7 @@ int main(int, char**) {
             depth_buffer,
             texture,
             height_map,
+            flag_in_world,
             player.ball.position_in_world,
             player.intrinsics,
             player.extrinsics,

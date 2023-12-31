@@ -36,6 +36,10 @@ int mini(int a, int b) {
     return a < b ? a : b;
 }
 
+int maxi(int a, int b) {
+    return a < b ? b : a;
+}
+
 PixelArgb packColorRgb(uint32_t r, uint32_t g, uint32_t b) {
     return (255 << 24) | (r << 16) | (g << 8) | (b << 0);
 }
@@ -174,6 +178,28 @@ void drawTexturedGround(
     }
 }
 
+void drawFlag(
+    Image screen,
+    Imaged depth_buffer,
+    Vector4d flag_in_world,
+    CameraIntrinsics intrinsics,
+    CameraExtrinsics extrinsics
+) {
+    auto FLAG_HEIGHT = 10.0;
+    Matrix4d image_from_world = imageFromCamera(intrinsics) * cameraFromWorld(extrinsics);
+    Vector4d flag_top_in_world = flag_in_world + Vector4d{0, FLAG_HEIGHT, 0, 0};
+    Vector4d flag_in_image = image_from_world * flag_in_world;
+    Vector4d flag_top_in_image = image_from_world * flag_top_in_world;
+    auto u = int(flag_in_image.x() / flag_in_image.w());
+    auto v = int(flag_in_image.y() / flag_in_image.w());
+    auto v_top = int(flag_top_in_image.y() / flag_top_in_image.w());
+    if (0 <= u && u < screen.width - 1) {
+        for (auto y = maxi(v_top, 0); y < mini(v, screen.height); ++y) {
+            screen.data[y * screen.width + u] = packColorRgb(255, 255, 255);    
+        }
+    }
+}
+
 void drawBall(
     Image screen,
     Imaged depth_buffer,
@@ -217,6 +243,7 @@ void draw(
     Imaged depth_buffer,
     Image texture,
     Image height_map,
+    Vector4d flag_in_world,
     Vector4d ball_in_world,
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics,
@@ -231,6 +258,13 @@ void draw(
         intrinsics,
         extrinsics,
         step_parameters
+    );
+    drawFlag(
+        screen,
+        depth_buffer,
+        flag_in_world,
+        intrinsics,
+        extrinsics
     );
     drawBall(
         screen,

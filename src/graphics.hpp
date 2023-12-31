@@ -38,6 +38,7 @@ void draw(
     Imaged depth_buffer,
     Image texture,
     Image height_map,
+    Vector4d flag_in_world,
     Vector4d ball_in_world,
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics,
