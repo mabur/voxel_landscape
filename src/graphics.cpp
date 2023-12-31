@@ -185,17 +185,37 @@ void drawFlag(
     CameraIntrinsics intrinsics,
     CameraExtrinsics extrinsics
 ) {
-    auto FLAG_HEIGHT = 10.0;
+    double POLE_HEIGHT = 10.0;
+    double FLAG_WIDTH = 2.0;
+    double FLAG_HEIGHT = 1.5;
     Matrix4d image_from_world = imageFromCamera(intrinsics) * cameraFromWorld(extrinsics);
-    Vector4d flag_top_in_world = flag_in_world + Vector4d{0, FLAG_HEIGHT, 0, 0};
     Vector4d flag_in_image = image_from_world * flag_in_world;
-    Vector4d flag_top_in_image = image_from_world * flag_top_in_world;
-    auto u = int(flag_in_image.x() / flag_in_image.w());
-    auto v = int(flag_in_image.y() / flag_in_image.w());
-    auto v_top = int(flag_top_in_image.y() / flag_top_in_image.w());
-    if (0 <= u && u < screen.width - 1) {
-        for (auto y = maxi(v_top, 0); y < mini(v, screen.height); ++y) {
-            screen.data[y * screen.width + u] = packColorRgb(255, 255, 255);    
+    int u = int(flag_in_image.x() / flag_in_image.w());
+    int v = int(flag_in_image.y() / flag_in_image.w());
+    double z = flag_in_image.w() / flag_in_image.z();
+
+    int flag_width_in_image = int(FLAG_WIDTH * intrinsics.fx / z);
+    int flag_height_in_image = int(FLAG_HEIGHT * intrinsics.fy / z);
+    int pole_height_in_image = int(POLE_HEIGHT * intrinsics.fy / z);
+
+    int pole_x = u;
+    int pole_ymax = v;
+    int pole_ymin = v - pole_height_in_image;
+
+    int flag_xmin = u;
+    int flag_xmax = u + flag_width_in_image;
+    int flag_ymin = pole_ymin;
+    int flag_ymax = pole_ymin + flag_height_in_image;
+    
+    if (0 <= pole_x && pole_x < screen.width - 1) {
+        for (auto y = maxi(pole_ymin, 0); y < mini(pole_ymax, screen.height); ++y) {
+            screen.data[y * screen.width + pole_x] = packColorRgb(255, 255, 255);
+        }
+    }
+    
+    for (auto y = maxi(flag_ymin, 0); y < mini(flag_ymax, screen.height); ++y) {
+        for (auto x = maxi(flag_xmin, 0); x < mini(flag_xmax, screen.width); ++x) {
+            screen.data[y * screen.width + x] = packColorRgb(255, 0, 0);
         }
     }
 }
